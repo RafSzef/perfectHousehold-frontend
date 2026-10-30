@@ -1,16 +1,32 @@
 <div [attr.data-theme]="theme()" [attr.data-palette]="palette()" [attr.data-density]="density()" class="app-container">
   
+  <!-- NETWORK ACCESS STRIP (Lokalny Ethernet / Wi-Fi dla telefonu Adrianny) -->
+  <aside class="network-strip">
+    <div class="network-strip__content">
+      <div class="network-info">
+        <span class="wifi-icon">📱</span>
+        <span class="network-text">
+          Dostęp z telefonu Adrianny (w domowej sieci Wi-Fi):
+          <strong class="ip-highlight">{{ localUrl }}</strong>
+        </span>
+      </div>
+      <button type="button" class="btn-copy-url" (click)="copyNetworkUrl()">
+        {{ copiedUrl() ? '✓ Skopiowano adres!' : '📋 Kopiuj link dla Adrianny' }}
+      </button>
+    </div>
+  </aside>
+
   <!-- TOP BANNER / DEMO CONTROL BAR -->
   <aside class="demo-bar">
     <div class="demo-bar__content">
       <div class="demo-badge">
         <span class="pulse-dot"></span>
-        <strong>Projekt demonstracyjny dla Żony i Rafała</strong>
+        <strong>Projekt demonstracyjny: Adrianna & Rafał</strong>
       </div>
       
       <div class="demo-controls">
         <div class="control-group">
-          <span class="control-label">Paleta kolorów:</span>
+          <span class="control-label">Paleta:</span>
           <div class="palette-buttons">
             <button 
               type="button" 
@@ -19,7 +35,7 @@
               (click)="setPalette('sage')"
               title="Ciepła Szałwia & Len">
               <span class="color-dot sage"></span>
-              <span>1. Szałwia & Len (Ciepły Dom)</span>
+              <span>1. Szałwia & Len</span>
             </button>
             <button 
               type="button" 
@@ -28,7 +44,7 @@
               (click)="setPalette('emerald')"
               title="Szmaragdowy Fintech">
               <span class="color-dot emerald"></span>
-              <span>2. Szmaragd (Nowoczesny Fintech)</span>
+              <span>2. Szmaragd Fintech</span>
             </button>
             <button 
               type="button" 
@@ -37,25 +53,25 @@
               (click)="setPalette('indigo')"
               title="Minimalistyczny Granat">
               <span class="color-dot indigo"></span>
-              <span>3. Granat & Błękit (Klasyczny)</span>
+              <span>3. Granat & Błękit</span>
             </button>
           </div>
         </div>
 
-        <div class="divider"></div>
+        <div class="divider hide-mobile"></div>
 
         <div class="control-group">
           <button type="button" class="action-toggle-btn" (click)="toggleTheme()">
             @if (theme() === 'light') {
-              <span class="icon">🌙</span> <span>Tryb Ciemny</span>
+              <span class="icon">🌙</span> <span>Ciemny</span>
             } @else {
-              <span class="icon">☀️</span> <span>Tryb Jasny</span>
+              <span class="icon">☀️</span> <span>Jasny</span>
             }
           </button>
 
           <button 
             type="button" 
-            class="action-toggle-btn"
+            class="action-toggle-btn hide-mobile"
             (click)="setDensity(density() === 'spacious' ? 'compact' : 'spacious')">
             <span class="icon">📐</span>
             <span>Tabela: {{ density() === 'spacious' ? 'Przestronna' : 'Zagęszczona' }}</span>
@@ -72,11 +88,11 @@
         <div class="logo-icon">🏠</div>
         <div class="logo-text">
           <h1>perfectHousehold</h1>
-          <span class="tagline">Twoje Domowe Centrum Finansów i Życia</span>
+          <span class="tagline">Domowe Centrum Finansów i Życia</span>
         </div>
       </div>
 
-      <nav class="main-nav">
+      <nav class="main-nav hide-mobile">
         <button class="nav-item" [class.active]="currentTab() === 'all'" (click)="setTab('all')">
           <span class="nav-icon">📊</span> Pulpit Całości
         </button>
@@ -87,22 +103,22 @@
           <span class="nav-icon">✍️</span> Formularze & Wpisy
         </button>
         <button class="nav-item highlight-tab" [class.active]="currentTab() === 'wife-picker'" (click)="setTab('wife-picker')">
-          <span class="nav-icon">✨</span> Wybór dla Żony (Porównanie)
+          <span class="nav-icon">✨</span> Wybór dla Adrianny
         </button>
       </nav>
     </div>
 
     <div class="header-right">
       <div class="household-members">
-        <span class="member-chip active">
+        <span class="member-chip" [class.active]="newExpense.paidBy === 'Rafał'" (click)="newExpense.paidBy = 'Rafał'">
           <span class="avatar male">R</span> Rafał
         </span>
-        <span class="member-chip">
-          <span class="avatar female">K</span> Kasia
+        <span class="member-chip" [class.active]="newExpense.paidBy === 'Adrianna'" (click)="newExpense.paidBy = 'Adrianna'">
+          <span class="avatar female">A</span> Adrianna
         </span>
       </div>
 
-      <button class="btn btn-primary btn-sm">
+      <button class="btn btn-primary btn-sm hide-mobile" (click)="setTab('forms')">
         <span>+</span> Nowy wydatek
       </button>
     </div>
@@ -133,8 +149,8 @@
           <span class="source-tag">GoCardless API</span>
         </div>
         <div class="kpi-value">3 nowe</div>
-        <p class="kpi-desc">Transakcje pobrane automatycznie z konta PKO BP. Wymagają szybkiej kategoryzacji.</p>
-        <div class="kpi-footer action-link">
+        <p class="kpi-desc">Transakcje z konta bankowego czekają na szybką akceptację.</p>
+        <div class="kpi-footer action-link" (click)="setTab('table')">
           <span>Przejdź do zatwierdzenia →</span>
         </div>
       </div>
@@ -145,7 +161,7 @@
           <span class="ai-tag">Gemini OCR</span>
         </div>
         <div class="kpi-value">12 paragonów</div>
-        <p class="kpi-desc">Zeskanowano w tym miesiącu. Wszystkie pozycje rozbite na kategorie (Nabiał, Chemia, Mięso).</p>
+        <p class="kpi-desc">Rozpoznano automatycznie ze zdjęć z telefonu Adrianny i Rafała.</p>
         <div class="kpi-footer">
           <span>Ostatni: Biedronka (dzisiaj, 11:20)</span>
         </div>
@@ -157,20 +173,20 @@
           <span class="kpi-balance">Wyrównane</span>
         </div>
         <div class="kpi-value">Rafał: +45 zł</div>
-        <p class="kpi-desc">Rafał wydał w tym miesiącu na dom o 90 zł więcej niż Kasia.</p>
+        <p class="kpi-desc">Rafał wydał w tym miesiącu na dom o 90 zł więcej niż Adrianna.</p>
         <div class="kpi-footer">
           <span>Sugerowany przelew wyrównujący: 45 zł dla Rafała</span>
         </div>
       </div>
     </section>
 
-    <!-- SECTION: SPECIAL WIFE PICKER & COMPARISON -->
+    <!-- SECTION: SPECIAL ADRIANNA PICKER & COMPARISON -->
     @if (currentTab() === 'all' || currentTab() === 'wife-picker') {
       <section class="section-card wife-section">
         <div class="section-card__header">
           <div>
-            <h2 class="section-title">✨ Strefa Wyboru dla Żony — Który klimat najbardziej Ci odpowiada?</h2>
-            <p class="section-subtitle">Aplikacja domowa powinna być przede wszystkim przyjazna, czytelna i estetyczna, a nie wyglądać jak szary arkusz w Excelu. Kliknij w karty poniżej, aby natychmiast zobaczyć jak zmienia się cały program:</p>
+            <h2 class="section-title">✨ Strefa Wyboru dla Adrianny — Który klimat najbardziej Ci odpowiada?</h2>
+            <p class="section-subtitle">Aplikacja domowa powinna być przede wszystkim przyjazna, czytelna i estetyczna na telefonie oraz komputerze. Dotknij kartę poniżej, aby natychmiast zobaczyć jak zmienia się cały program:</p>
           </div>
         </div>
 
@@ -187,7 +203,7 @@
               <span class="swatch" style="background: #f8fafc;"></span>
             </div>
             <h3>🌿 Wariant 1: Szałwia & Ciepły Len (Nordic Cozy)</h3>
-            <p>Spokojna, domowa, naturalna kolorystyka. Kojarzy się ze spokojem, skandynawskim wnętrzem i domowym ciepłem. Oczy nie męczą się przy planowaniu.</p>
+            <p>Spokojna, domowa, naturalna kolorystyka. Kojarzy się ze spokojem, skandynawskim wnętrzem i domowym ciepłem. Nie męczy oczu przy codziennym korzystaniu na smartfonie.</p>
             <div class="preview-tag">Rekomendowany do domu i rodziny</div>
             <button class="btn btn-outline btn-block">
               {{ palette() === 'sage' ? '✓ Wybrany w tej chwili' : 'Wybierz ten motyw' }}
@@ -235,17 +251,20 @@
       </section>
     }
 
-    <!-- SECTION: DUŻA TABELA Z FILTRAMI (WYMÓG GŁÓWNY) -->
+    <!-- SECTION: DUŻA TABELA / WIDOK KAFELKOWY WYDATKÓW -->
     @if (currentTab() === 'all' || currentTab() === 'table') {
       <section class="section-card table-section">
         <div class="section-card__header">
           <div>
-            <h2 class="section-title">📋 Historia Wydatków Domowych (Duża tabela z filtrowaniem)</h2>
-            <p class="section-subtitle">Płynne wyszukiwanie, statusy paragonów, powiązanie z kontem GoCardless i natychmiastowe przeliczanie sum.</p>
+            <h2 class="section-title">📋 Historia Wydatków Domowych</h2>
+            <p class="section-subtitle">Wyszukiwanie na żywo, statusy paragonów i kategoryzacja.</p>
           </div>
           <div class="table-actions">
-            <button class="btn btn-outline btn-sm">📥 Eksport CSV</button>
-            <button class="btn btn-primary btn-sm">📷 Skanuj paragon</button>
+            <!-- MOBILE VIEW TOGGLE -->
+            <button class="btn btn-outline btn-sm mobile-toggle-btn" (click)="mobileCardView.update(v => !v)">
+              {{ mobileCardView() ? '📊 Przełącz na tabelę' : '📱 Przełącz na kafelki' }}
+            </button>
+            <button class="btn btn-primary btn-sm hide-mobile" (click)="setTab('forms')">📷 Skanuj paragon</button>
           </div>
         </div>
 
@@ -255,7 +274,7 @@
             <span class="search-icon">🔍</span>
             <input 
               type="text" 
-              placeholder="Szukaj sklepu, opisu lub ID (np. Biedronka, PGNiG)..." 
+              placeholder="Szukaj sklepu lub opisu (Biedronka, PGNiG)..." 
               [ngModel]="searchQuery()"
               (ngModelChange)="searchQuery.set($event)"
               class="form-control" />
@@ -265,31 +284,31 @@
             <div class="filter-item">
               <label>Kategoria:</label>
               <select [ngModel]="selectedCategory()" (ngModelChange)="selectedCategory.set($event)" class="form-select">
-                <option value="all">Wszystkie kategorie</option>
+                <option value="all">Wszystkie</option>
                 <option value="Spożywcze">🛒 Spożywcze</option>
-                <option value="Rachunki">💡 Rachunki & Media</option>
-                <option value="Dom">🛋️ Dom & Chemia</option>
+                <option value="Rachunki">💡 Rachunki</option>
+                <option value="Dom">🛋️ Dom</option>
                 <option value="Paliwo">⛽ Paliwo</option>
-                <option value="Zdrowie">💊 Zdrowie & Apteka</option>
+                <option value="Zdrowie">💊 Zdrowie</option>
                 <option value="Rozrywka">🍿 Rozrywka</option>
-                <option value="Przychód">💰 Przychody</option>
+                <option value="Przychód">💰 Przychód</option>
               </select>
             </div>
 
             <div class="filter-item">
               <label>Kto płacił:</label>
               <select [ngModel]="selectedUser()" (ngModelChange)="selectedUser.set($event)" class="form-select">
-                <option value="all">Wszyscy domownicy</option>
+                <option value="all">Wszyscy</option>
+                <option value="Adrianna">Adrianna</option>
                 <option value="Rafał">Rafał</option>
-                <option value="Kasia">Kasia</option>
-                <option value="Wspólne">Konto Wspólne</option>
+                <option value="Wspólne">Wspólne</option>
               </select>
             </div>
 
             <div class="filter-item">
               <label>Status:</label>
               <select [ngModel]="selectedStatus()" (ngModelChange)="selectedStatus.set($event)" class="form-select">
-                <option value="all">Wszystkie statusy</option>
+                <option value="all">Wszystkie</option>
                 <option value="Zaksięgowane">Zaksięgowane</option>
                 <option value="Do weryfikacji">Do weryfikacji</option>
                 <option value="Nowe z banku">Nowe z banku</option>
@@ -301,18 +320,62 @@
         <!-- TABLE SUMMARY STRIP -->
         <div class="table-summary-strip">
           <div class="summary-left">
-            Znaleziono transakcji: <strong>{{ filteredTransactions().length }}</strong> z {{ transactions().length }}
+            Pozycje: <strong>{{ filteredTransactions().length }}</strong> z {{ transactions().length }}
           </div>
           <div class="summary-right">
-            Suma wydatków: <strong class="text-danger">-{{ totalSpent() | number:'1.2-2' }} zł</strong>
+            Wydatki: <strong class="text-danger">-{{ totalSpent() | number:'1.2-2' }} zł</strong>
             @if (totalIncome() > 0) {
-              <span class="divider-inline">|</span> Suma wpływów: <strong class="text-success">+{{ totalIncome() | number:'1.2-2' }} zł</strong>
+              <span class="divider-inline">|</span> Wpływy: <strong class="text-success">+{{ totalIncome() | number:'1.2-2' }} zł</strong>
             }
           </div>
         </div>
 
-        <!-- DATA TABLE -->
-        <div class="table-responsive">
+        <!-- 1. MOBILE RESPONSIVE CARDS VIEW (Dla smartfona Adrianny) -->
+        <div class="mobile-transaction-cards" [class.force-show]="mobileCardView()">
+          @for (item of filteredTransactions(); track item.id) {
+            <div class="tx-card" [class.tx-income]="item.type === 'income'">
+              <div class="tx-card-top">
+                <div class="tx-card-merchant">
+                  <span class="merchant-logo">{{ item.merchant.substring(0, 2).toUpperCase() }}</span>
+                  <div>
+                    <strong>{{ item.merchant }}</strong>
+                    <div class="tx-meta-row">
+                      <span class="font-mono text-muted text-xs">{{ item.date }}</span>
+                      <span class="source-tag-xs">{{ item.source }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="tx-card-amount" [class.positive]="item.type === 'income'" [class.negative]="item.type === 'expense'">
+                  {{ item.type === 'income' ? '+' : '' }}{{ item.amount | number:'1.2-2' }} zł
+                </div>
+              </div>
+
+              <div class="tx-card-bottom">
+                <div class="tx-badges">
+                  <span class="badge" [attr.data-cat]="item.category">{{ item.category }}</span>
+                  <span class="user-pill" [class.user-ada]="item.paidBy === 'Adrianna'" [class.user-rafal]="item.paidBy === 'Rafał'">
+                    {{ item.paidBy }} ({{ item.split }})
+                  </span>
+                </div>
+
+                <div class="tx-status-group">
+                  @if (item.hasReceipt) {
+                    <span class="receipt-icon yes">🧾 Paragon</span>
+                  }
+                  <span class="status-badge" [attr.data-status]="item.status">{{ item.status }}</span>
+                </div>
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-state">
+              Brak transakcji spełniających wybrane filtry.
+            </div>
+          }
+        </div>
+
+        <!-- 2. DESKTOP DATA TABLE (Dla komputera / tabletu) -->
+        <div class="table-responsive desktop-table" [class.hide-on-mobile]="mobileCardView()">
           <table class="data-table">
             <thead>
               <tr>
@@ -347,7 +410,7 @@
                     </span>
                   </td>
                   <td>
-                    <span class="user-pill" [class.user-kasia]="item.paidBy === 'Kasia'" [class.user-rafal]="item.paidBy === 'Rafał'">
+                    <span class="user-pill" [class.user-ada]="item.paidBy === 'Adrianna'" [class.user-rafal]="item.paidBy === 'Rafał'">
                       {{ item.paidBy }}
                     </span>
                   </td>
@@ -357,7 +420,7 @@
                     @if (item.hasReceipt) {
                       <span class="receipt-icon yes" title="Paragon zeskanowany i przypisany">🧾 Tak</span>
                     } @else {
-                      <span class="receipt-icon no" title="Brak paragonu (np. przelew bankowy)">—</span>
+                      <span class="receipt-icon no" title="Brak paragonu">—</span>
                     }
                   </td>
                   <td>
@@ -370,8 +433,8 @@
                   </td>
                   <td style="text-align: center;">
                     <div class="row-actions">
-                      <button class="icon-btn" title="Edytuj transakcję">✏️</button>
-                      <button class="icon-btn" title="Pokaż szczegóły / paragon">🔍</button>
+                      <button class="icon-btn" title="Edytuj">✏️</button>
+                      <button class="icon-btn" title="Szczegóły">🔍</button>
                     </div>
                   </td>
                 </tr>
@@ -388,7 +451,7 @@
 
         <!-- TABLE FOOTER PAGINATION -->
         <div class="table-pagination">
-          <span class="page-info">Strona 1 z 1 (10 pozycji na stronę)</span>
+          <span class="page-info">Wyświetlono 10 pozycji</span>
           <div class="pagination-controls">
             <button class="btn btn-outline btn-xs" disabled>Poprzednia</button>
             <button class="btn btn-primary btn-xs active">1</button>
@@ -398,15 +461,15 @@
       </section>
     }
 
-    <!-- SECTION: FORMULARZE (WYMÓG GŁÓWNY) -->
+    <!-- SECTION: FORMULARZE -->
     @if (currentTab() === 'all' || currentTab() === 'forms') {
       <section class="forms-dual-grid">
-        <!-- FORM 1: SZYBKI WYDATEK I PARAGON -->
+        <!-- FORM 1: SZYBKI WYDATEK I PARAGON Z APARATEM -->
         <div class="section-card">
           <div class="section-card__header">
             <div>
               <h2 class="section-title">✍️ Formularz: Dodawanie Wydatku / Paragonu</h2>
-              <p class="section-subtitle">Przykład formularza codziennego — wygodny, intuicyjny na telefonie i komputerze.</p>
+              <p class="section-subtitle">Wygodny na telefonie Adrianny i komputerze Rafała.</p>
             </div>
             <span class="badge badge-accent">Szybki wpis</span>
           </div>
@@ -449,9 +512,9 @@
               <div class="form-group flex-1">
                 <label class="form-label required">Kto zapłacił?</label>
                 <div class="segmented-control">
-                  <button type="button" [class.active]="newExpense.paidBy === 'Kasia'" (click)="newExpense.paidBy = 'Kasia'">Kasia</button>
+                  <button type="button" [class.active]="newExpense.paidBy === 'Adrianna'" (click)="newExpense.paidBy = 'Adrianna'">Adrianna</button>
                   <button type="button" [class.active]="newExpense.paidBy === 'Rafał'" (click)="newExpense.paidBy = 'Rafał'">Rafał</button>
-                  <button type="button" [class.active]="newExpense.paidBy === 'Wspólne'" (click)="newExpense.paidBy = 'Wspólne'">Konto Wspólne</button>
+                  <button type="button" [class.active]="newExpense.paidBy === 'Wspólne'" (click)="newExpense.paidBy = 'Wspólne'">Wspólne</button>
                 </div>
               </div>
 
@@ -460,35 +523,49 @@
                 <div class="segmented-control">
                   <button type="button" [class.active]="newExpense.splitRatio === '50/50'" (click)="newExpense.splitRatio = '50/50'">50 / 50</button>
                   <button type="button" [class.active]="newExpense.splitRatio === '100% On'" (click)="newExpense.splitRatio = '100% On'">Tylko Rafał</button>
-                  <button type="button" [class.active]="newExpense.splitRatio === '100% Ona'" (click)="newExpense.splitRatio = '100% Ona'">Tylko Kasia</button>
+                  <button type="button" [class.active]="newExpense.splitRatio === '100% Ona'" (click)="newExpense.splitRatio = '100% Ona'">Tylko Ada</button>
                 </div>
               </div>
             </div>
 
-            <!-- DRAG & DROP RECEIPT ZONE -->
+            <!-- APARAT I DRAG & DROP DLA TELEFONU -->
             <div class="form-group">
-              <label class="form-label">Zdjęcie paragonu (do odczytu AI)</label>
-              <div class="dropzone">
-                <div class="dropzone-icon">📷</div>
+              <label class="form-label">Zdjęcie paragonu (z aparatu telefonu lub pliku)</label>
+              
+              <!-- Hidden camera/file input -->
+              <input 
+                type="file" 
+                id="receiptCameraInput" 
+                accept="image/*" 
+                capture="environment" 
+                style="display: none;" 
+                (change)="onReceiptSelected($event)" />
+
+              <div class="dropzone" (click)="cameraTrigger.click()">
+                <input #cameraTrigger type="file" accept="image/*" capture="environment" style="display:none;" (change)="onReceiptSelected($event)" />
+                <div class="dropzone-icon">📸</div>
                 <div class="dropzone-text">
-                  <strong>Przeciągnij zdjęcie paragonu lub kliknij, aby zrobić fotkę</strong>
-                  <span>AI odczyta automatycznie pozycje, ceny i rabaty</span>
+                  <strong>Dotknij, aby zrobić zdjęcie aparatem w telefonie</strong>
+                  <span>lub przeciągnij plik ze skanem paragonu (AI odczyta pozycje)</span>
                 </div>
-                <div class="attached-file-pill">
-                  <span>🧾 paragon_biedronka_3010.jpg (1.8 MB)</span>
-                  <button type="button" class="pill-remove">✕</button>
-                </div>
+
+                @if (newExpense.receiptAttached) {
+                  <div class="attached-file-pill" (click)="$event.stopPropagation()">
+                    <span>🧾 {{ newExpense.receiptFileName }}</span>
+                    <button type="button" class="pill-remove" (click)="removeReceipt()">✕</button>
+                  </div>
+                }
               </div>
             </div>
 
             <div class="form-group">
-              <label class="form-label">Dodatkowe notatki / Szczegóły</label>
-              <textarea class="form-control" rows="2" [(ngModel)]="newExpense.notes" name="notes" placeholder="Np. zakupione prezenty na urodziny, proszek do prania w promocji..."></textarea>
+              <label class="form-label">Dodatkowe notatki</label>
+              <textarea class="form-control" rows="2" [(ngModel)]="newExpense.notes" name="notes" placeholder="Np. zakupione prezenty, proszek do prania w promocji..."></textarea>
             </div>
 
             <div class="form-actions">
-              <button type="button" class="btn btn-outline">Anuluj</button>
-              <button type="button" class="btn btn-primary">💾 Zapisz wydatek i przelicz budżet</button>
+              <button type="button" class="btn btn-outline">Wyczyść</button>
+              <button type="button" class="btn btn-primary">💾 Zapisz wydatek</button>
             </div>
           </form>
         </div>
@@ -497,15 +574,15 @@
         <div class="section-card">
           <div class="section-card__header">
             <div>
-              <h2 class="section-title">⚙️ Konfiguracja Limitu i Ostrzeżeń</h2>
-              <p class="section-subtitle">Przykład ustawień limitu wydatków w kategorii z natychmiastowym podglądem.</p>
+              <h2 class="section-title">⚙️ Konfiguracja Limitu i Powiadomień</h2>
+              <p class="section-subtitle">Wspólne ustalanie limitów miesięcznych.</p>
             </div>
             <span class="badge badge-success">Budżet na żywo</span>
           </div>
 
           <form class="app-form" (submit)="$event.preventDefault()">
             <div class="form-group">
-              <label class="form-label">Wybrana kategoria</label>
+              <label class="form-label">Kategoria</label>
               <select class="form-select" [(ngModel)]="budgetLimit.category" name="limitCategory">
                 <option value="Spożywcze">🛒 Spożywcze i supermarket</option>
                 <option value="Rachunki">💡 Rachunki i opłaty domowe</option>
@@ -514,7 +591,7 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label">Miesięczny planowany limit</label>
+              <label class="form-label">Miesięczny limit</label>
               <div class="input-with-affix">
                 <input type="number" step="50" class="form-control font-mono font-bold" [(ngModel)]="budgetLimit.limitAmount" name="limitAmount" />
                 <span class="affix">zł / mies.</span>
@@ -523,8 +600,8 @@
 
             <div class="form-group">
               <div class="slider-header">
-                <label class="form-label">Powiadomienie, gdy wydamy:</label>
-                <span class="slider-value font-mono"><strong>{{ budgetLimit.alertThreshold }}%</strong> (czyli {{ (budgetLimit.limitAmount * budgetLimit.alertThreshold / 100) | number:'1.0-0' }} zł)</span>
+                <label class="form-label">Ostrzeżenie przy wydaniu:</label>
+                <span class="slider-value font-mono"><strong>{{ budgetLimit.alertThreshold }}%</strong> ({{ (budgetLimit.limitAmount * budgetLimit.alertThreshold / 100) | number:'1.0-0' }} zł)</span>
               </div>
               <input type="range" min="50" max="100" step="5" class="form-range" [(ngModel)]="budgetLimit.alertThreshold" name="alertThreshold" />
             </div>
@@ -532,7 +609,7 @@
             <!-- LIVE PREVIEW BOX -->
             <div class="budget-preview-box">
               <div class="preview-box-header">
-                <span>Podgląd na żywo dla: <strong>{{ budgetLimit.category }}</strong></span>
+                <span>Stan kategorii: <strong>{{ budgetLimit.category }}</strong></span>
                 <span class="font-mono">{{ budgetLimit.currentSpent }} zł / {{ budgetLimit.limitAmount }} zł</span>
               </div>
               <div class="progress-bar lg">
@@ -544,9 +621,9 @@
               </div>
               <p class="preview-hint">
                 @if ((budgetLimit.currentSpent / budgetLimit.limitAmount) >= (budgetLimit.alertThreshold / 100)) {
-                  ⚠️ <strong>Uwaga:</strong> Wydano już {{ ((budgetLimit.currentSpent / budgetLimit.limitAmount) * 100) | number:'1.0-0' }}% limitu. Aplikacja wyśle powiadomienie Push do obojga domowników!
+                  ⚠️ <strong>Uwaga:</strong> Wydano {{ ((budgetLimit.currentSpent / budgetLimit.limitAmount) * 100) | number:'1.0-0' }}% limitu. Adrianna i Rafał otrzymają alert na telefon!
                 } @else {
-                  ✓ Wydatki w normie. Pozostało jeszcze {{ budgetLimit.limitAmount - budgetLimit.currentSpent }} zł do limitu.
+                  ✓ W normie. Pozostało jeszcze {{ budgetLimit.limitAmount - budgetLimit.currentSpent }} zł do osiągnięcia limitu.
                 }
               </p>
             </div>
@@ -557,13 +634,13 @@
                 <span class="switch-slider"></span>
               </label>
               <div class="switch-label">
-                <strong>Wyślij powiadomienie na telefon (Push)</strong>
-                <span>Powiadom Rafała i Kasię, gdy zbliżacie się do limitu</span>
+                <strong>Powiadomienia Push na smartfon</strong>
+                <span>Powiadom Adriannę i Rafała po przekroczeniu progu</span>
               </div>
             </div>
 
             <div class="form-actions">
-              <button type="button" class="btn btn-primary btn-block">Zapisz regułę budżetową</button>
+              <button type="button" class="btn btn-primary btn-block">Zapisz limit</button>
             </div>
           </form>
         </div>
@@ -571,4 +648,29 @@
     }
 
   </main>
+
+  <!-- MOBILE BOTTOM NAVIGATION (Widoczny wyłącznie na telefonie) -->
+  <nav class="mobile-bottom-nav">
+    <button class="bottom-nav-btn" [class.active]="currentTab() === 'all'" (click)="setTab('all')">
+      <span class="nav-icon">📊</span>
+      <span>Pulpit</span>
+    </button>
+    <button class="bottom-nav-btn" [class.active]="currentTab() === 'table'" (click)="setTab('table')">
+      <span class="nav-icon">💳</span>
+      <span>Wydatki</span>
+    </button>
+    <button class="bottom-nav-btn fab-btn" (click)="setTab('forms')">
+      <span class="fab-icon">+</span>
+      <span>Dodaj</span>
+    </button>
+    <button class="bottom-nav-btn" [class.active]="currentTab() === 'wife-picker'" (click)="setTab('wife-picker')">
+      <span class="nav-icon">✨</span>
+      <span>Dla Ady</span>
+    </button>
+    <button class="bottom-nav-btn" (click)="toggleTheme()">
+      <span class="nav-icon">{{ theme() === 'light' ? '🌙' : '☀️' }}</span>
+      <span>{{ theme() === 'light' ? 'Ciemny' : 'Jasny' }}</span>
+    </button>
+  </nav>
+
 </div>

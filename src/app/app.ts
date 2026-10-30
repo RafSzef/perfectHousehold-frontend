@@ -9,7 +9,7 @@ export interface Transaction {
   category: 'Spożywcze' | 'Rachunki' | 'Dom' | 'Paliwo' | 'Zdrowie' | 'Rozrywka' | 'Przychód';
   amount: number;
   type: 'expense' | 'income';
-  paidBy: 'Rafał' | 'Kasia' | 'Wspólne';
+  paidBy: 'Rafał' | 'Adrianna' | 'Wspólne';
   source: 'GoCardless' | 'Karta' | 'Gotówka' | 'Przelew';
   hasReceipt: boolean;
   status: 'Zaksięgowane' | 'Do weryfikacji' | 'Nowe z banku';
@@ -29,8 +29,17 @@ export class App {
   palette = signal<'sage' | 'emerald' | 'indigo'>('sage');
   density = signal<'spacious' | 'compact'>('spacious');
 
+  // Network info
+  localIp = '192.168.1.3';
+  localUrl = 'http://192.168.1.3:4200';
+  copiedUrl = signal<boolean>(false);
+
   // Active view tab
   currentTab = signal<'all' | 'table' | 'forms' | 'wife-picker'>('all');
+
+  // Mobile layout state
+  mobileCardView = signal<boolean>(true);
+  showAddExpenseModal = signal<boolean>(false);
 
   // Filters for table
   searchQuery = signal<string>('');
@@ -44,11 +53,12 @@ export class App {
     amount: 245.80,
     category: 'Spożywcze',
     date: '2026-10-30',
-    paidBy: 'Kasia',
+    paidBy: 'Adrianna',
     splitRatio: '50/50',
     account: 'Konto Wspólne (PKO BP / GoCardless)',
-    notes: 'Kupiono zapas chemii i warzyw na obiad',
-    receiptAttached: true
+    notes: 'Kupiono zapas chemii i świeże warzywa',
+    receiptAttached: true,
+    receiptFileName: 'paragon_biedronka_3010.jpg'
   };
 
   budgetLimit = {
@@ -68,7 +78,7 @@ export class App {
       category: 'Spożywcze',
       amount: -184.20,
       type: 'expense',
-      paidBy: 'Kasia',
+      paidBy: 'Adrianna',
       source: 'GoCardless',
       hasReceipt: true,
       status: 'Do weryfikacji',
@@ -133,7 +143,7 @@ export class App {
       category: 'Dom',
       amount: -89.90,
       type: 'expense',
-      paidBy: 'Kasia',
+      paidBy: 'Adrianna',
       source: 'GoCardless',
       hasReceipt: true,
       status: 'Zaksięgowane',
@@ -159,7 +169,7 @@ export class App {
       category: 'Zdrowie',
       amount: -64.50,
       type: 'expense',
-      paidBy: 'Kasia',
+      paidBy: 'Adrianna',
       source: 'Karta',
       hasReceipt: true,
       status: 'Zaksięgowane',
@@ -240,5 +250,26 @@ export class App {
 
   setTab(tab: 'all' | 'table' | 'forms' | 'wife-picker') {
     this.currentTab.set(tab);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  copyNetworkUrl() {
+    navigator.clipboard?.writeText(this.localUrl).then(() => {
+      this.copiedUrl.set(true);
+      setTimeout(() => this.copiedUrl.set(false), 2500);
+    });
+  }
+
+  onReceiptSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.newExpense.receiptFileName = input.files[0].name;
+      this.newExpense.receiptAttached = true;
+    }
+  }
+
+  removeReceipt() {
+    this.newExpense.receiptAttached = false;
+    this.newExpense.receiptFileName = '';
   }
 }
