@@ -1,40 +1,37 @@
-<div [attr.data-theme]="theme()" [attr.data-palette]="palette()" [attr.data-density]="density()" class="app-container">
+<div [attr.data-theme]="theme()" [attr.data-density]="density()" [ngStyle]="dynamicThemeStyles()" class="app-container">
   
-  <!-- COMPACT MOBILE-FRIENDLY TOP BANNER -->
+  <!-- COMPACT TOPBAR WITH EARTHY PALETTES & THEME SWITCH -->
   <header class="app-topbar">
     <div class="topbar-inner">
       <div class="brand">
-        <div class="brand-icon">🏠</div>
+        <div class="brand-icon">🌿</div>
         <div class="brand-title">
           <h1>perfectHousehold</h1>
-          <span class="brand-sub">Domowe finanse • Ada & Rafał</span>
+          <span class="brand-sub">Ada & Rafał • {{ currentPreset() === 'custom' ? 'Własne koło kolorów' : 'Motyw ' + currentPreset() }}</span>
         </div>
       </div>
 
       <div class="topbar-actions">
-        <!-- Quick Palette & Theme controls -->
+        <!-- Quick 5 Earthy Palettes switcher directly in header -->
         <div class="palette-mini-picker">
+          @for (p of presets; track p.key) {
+            <button 
+              type="button" 
+              class="palette-dot" 
+              [style.background]="p.dotColor"
+              [class.active]="currentPreset() === p.key" 
+              (click)="selectPreset(p)"
+              [title]="p.name"></button>
+          }
           <button 
             type="button" 
-            class="palette-dot sage" 
-            [class.active]="palette() === 'sage'" 
-            (click)="setPalette('sage')"
-            title="Szałwia & Len"></button>
-          <button 
-            type="button" 
-            class="palette-dot emerald" 
-            [class.active]="palette() === 'emerald'" 
-            (click)="setPalette('emerald')"
-            title="Szmaragd"></button>
-          <button 
-            type="button" 
-            class="palette-dot indigo" 
-            [class.active]="palette() === 'indigo'" 
-            (click)="setPalette('indigo')"
-            title="Granat"></button>
+            class="palette-dot custom-rainbow" 
+            [class.active]="currentPreset() === 'custom'" 
+            (click)="setTab('wife-picker')"
+            title="Generator koła kolorów"></button>
         </div>
 
-        <button type="button" class="theme-toggle-icon" (click)="toggleTheme()" title="Przełącz tryb dzień/noc">
+        <button type="button" class="theme-toggle-icon" (click)="toggleTheme()" title="Przełącz tryb noc/dzień">
           {{ theme() === 'light' ? '🌙' : '☀️' }}
         </button>
 
@@ -43,7 +40,7 @@
           class="network-pill-btn" 
           [class.active]="showNetworkBar()" 
           (click)="showNetworkBar.update(v => !v)"
-          title="Pokaż adres IP sieci domowej">
+          title="Pokaż IP sieci Wi-Fi">
           📶
         </button>
       </div>
@@ -52,7 +49,7 @@
     <!-- COLLAPSIBLE LAN IP INFO -->
     @if (showNetworkBar()) {
       <div class="network-collapse">
-        <span>Adres w Wi-Fi: <strong>{{ localUrl }}</strong></span>
+        <span>Telefon Ady w Wi-Fi: <strong>{{ localUrl }}</strong></span>
         <button type="button" class="btn-copy-small" (click)="copyNetworkUrl()">
           {{ copiedUrl() ? '✓ Skopiowano' : 'Kopiuj link' }}
         </button>
@@ -73,8 +70,8 @@
       <button class="d-nav-item" [class.active]="currentTab() === 'add'" (click)="setTab('add')">
         ➕ Nowy Wydatek
       </button>
-      <button class="d-nav-item" [class.active]="currentTab() === 'wife-picker'" (click)="setTab('wife-picker')">
-        ✨ Wybór dla Adrianny
+      <button class="d-nav-item highlight" [class.active]="currentTab() === 'wife-picker'" (click)="setTab('wife-picker')">
+        ✨ Studio Kolorów Ady
       </button>
       <button class="d-nav-item" [class.active]="currentTab() === 'limits'" (click)="setTab('limits')">
         ⚙️ Limity Budżetu
@@ -84,6 +81,241 @@
 
   <!-- MAIN SCROLLABLE CONTENT -->
   <main class="main-body">
+
+    <!-- TAB 4: WIFE PICKER & COLOR WHEEL GENERATOR (GŁÓWNY ZAKRES) -->
+    @if (currentTab() === 'wife-picker' || currentTab() === 'all') {
+      <div class="screen-view">
+        <div class="section-title-wrap">
+          <h2>✨ Studio Kolorów dla Adrianny</h2>
+          <p>Szałwiowy wygrał! Poniżej znajdziesz 5 gotowych wariantów inspirowanych naturą oraz pełne <strong>Koło Barw</strong> do miksowania własnych odcieni.</p>
+        </div>
+
+        <!-- 1. FIVE CURATED SISTER PALETTES (ORGANIC EARTH & SAGE) -->
+        <div class="sub-heading-bar">
+          <h3>🌿 1. Pięć Gotowych Odcieni Natury (Dotknij, aby wybrać)</h3>
+        </div>
+
+        <div class="theme-cards-stack">
+          @for (p of presets; track p.key) {
+            <div 
+              class="choice-card" 
+              [class.active]="currentPreset() === p.key"
+              (click)="selectPreset(p)">
+              <div class="choice-swatches">
+                <span class="swatch" [style.background]="p.dotColor"></span>
+                <span class="swatch" [style.background]="p.accentDotColor"></span>
+                <span class="swatch-bg-hint" title="Tło w trybie ciemnym"></span>
+              </div>
+              <div class="choice-title-row">
+                <h3>{{ p.name }}</h3>
+                <span class="choice-tag">{{ p.tag }}</span>
+              </div>
+              <p>{{ p.subtitle }}</p>
+              <button 
+                type="button" 
+                class="btn btn-block" 
+                [class.btn-primary]="currentPreset() === p.key" 
+                [class.btn-outline]="currentPreset() !== p.key">
+                {{ currentPreset() === p.key ? '✓ Aktualnie aktywny motyw' : 'Wybierz ' + p.name }}
+              </button>
+            </div>
+          }
+        </div>
+
+        <!-- 2. INTERACTIVE COLOR WHEEL STUDIO (KOŁO BARW & TEORIA KOLORÓW) -->
+        <div class="sub-heading-bar margin-top-lg">
+          <h3>🎨 2. Interaktywny Generator z Kołem Barw (Teoria Kolorów)</h3>
+          <span class="sub-badge">Dla Ady do zabawy</span>
+        </div>
+
+        <div class="card color-studio-card">
+          
+          <!-- TOP ROW: COLOR WHEEL VISUALIZER & DYNAMIC SAMPLE -->
+          <div class="wheel-interactive-preview">
+            <!-- SVG COLOR WHEEL WITH GEOMETRIC HARMONY -->
+            <div class="wheel-graphic-container">
+              <div class="wheel-circle-conic"></div>
+              <svg class="wheel-svg-overlay" viewBox="0 0 130 130">
+                <!-- Harmony connecting line -->
+                <line 
+                  [attr.x1]="wheelCoordinates().px" 
+                  [attr.y1]="wheelCoordinates().py" 
+                  [attr.x2]="wheelCoordinates().ax" 
+                  [attr.y2]="wheelCoordinates().ay" 
+                  stroke="rgba(255,255,255,0.7)" 
+                  stroke-width="2" 
+                  stroke-dasharray="3,3" />
+                
+                <!-- Center hub -->
+                <circle [attr.cx]="wheelCoordinates().cx" [attr.cy]="wheelCoordinates().cy" r="18" fill="var(--bg-surface)" stroke="var(--border)" stroke-width="1.5" />
+                <text [attr.x]="wheelCoordinates().cx" [attr.y]="wheelCoordinates().cy + 4" text-anchor="middle" font-size="9" font-weight="bold" fill="var(--text-main)">{{ customHue() }}°</text>
+
+                <!-- Primary Hue Marker -->
+                <circle 
+                  [attr.cx]="wheelCoordinates().px" 
+                  [attr.cy]="wheelCoordinates().py" 
+                  r="7" 
+                  fill="var(--primary)" 
+                  stroke="#ffffff" 
+                  stroke-width="2.5" />
+
+                <!-- Accent Hue Marker -->
+                <circle 
+                  [attr.cx]="wheelCoordinates().ax" 
+                  [attr.cy]="wheelCoordinates().ay" 
+                  r="6" 
+                  fill="var(--accent)" 
+                  stroke="#ffffff" 
+                  stroke-width="2" />
+              </svg>
+            </div>
+
+            <!-- LIVE COLOR VALUES & QUICK DICE -->
+            <div class="wheel-values-box">
+              <div class="color-sample-pill">
+                <span class="color-chip primary-chip" [style.background]="'hsl(' + customHue() + ', ' + customSaturation() + '%, 55%)'"></span>
+                <div>
+                  <strong>Baza: {{ customHue() }}°</strong>
+                  <span class="text-xs text-muted">Zieleń / Tło</span>
+                </div>
+              </div>
+
+              <div class="color-sample-pill">
+                <span class="color-chip accent-chip" [style.background]="'hsl(' + calculatedAccentHue() + ', ' + (customSaturation() + 15) + '%, 60%)'"></span>
+                <div>
+                  <strong>Akcent: {{ calculatedAccentHue() }}°</strong>
+                  <span class="text-xs text-muted">Przyciski & Tagi</span>
+                </div>
+              </div>
+
+              <button type="button" class="btn btn-outline btn-sm dice-btn" (click)="randomizeEarthyTheme()">
+                <span>🎲</span> Wylosuj motyw ziemi
+              </button>
+            </div>
+          </div>
+
+          <!-- SLIDER 1: HUE 0 - 360 -->
+          <div class="studio-field">
+            <div class="studio-field-header">
+              <label>1. Odcień Główny na Kole (Hue):</label>
+              <strong class="font-mono text-accent">{{ customHue() }}° ({{ customHue() >= 80 && customHue() <= 175 ? '🌿 Obszar szałwii i zieleni' : 'Inny odcień' }})</strong>
+            </div>
+            <input 
+              type="range" 
+              min="0" 
+              max="360" 
+              step="1" 
+              class="hue-rainbow-slider" 
+              [ngModel]="customHue()" 
+              (ngModelChange)="onHueChange($event)" />
+            <div class="hue-guide-labels">
+              <span>0° Czerwień</span>
+              <span class="highlight-sage">90°-160° Szałwia/Oliwka</span>
+              <span>240° Błękit</span>
+              <span>360°</span>
+            </div>
+          </div>
+
+          <!-- SLIDER 2: SATURATION -->
+          <div class="studio-field">
+            <div class="studio-field-header">
+              <label>2. Nasycenie Barwy (Saturacja):</label>
+              <strong class="font-mono">{{ customSaturation() }}% ({{ customSaturation() <= 45 ? 'Uspokajający, stonowany szałwiowy' : 'Żywszy, soczysty' }})</strong>
+            </div>
+            <input 
+              type="range" 
+              min="20" 
+              max="80" 
+              step="2" 
+              class="mobile-slider" 
+              [ngModel]="customSaturation()" 
+              (ngModelChange)="onSaturationChange($event)" />
+          </div>
+
+          <!-- HARMONY MODES (TEORIA KOLORÓW) -->
+          <div class="studio-field">
+            <label class="studio-label">3. Reguła Harmonii Kolorów (Teoria Barw):</label>
+            <div class="harmony-buttons-grid">
+              <button 
+                type="button" 
+                class="harmony-btn" 
+                [class.active]="customHarmony() === 'complementary'" 
+                (click)="setHarmony('complementary')">
+                <strong>Komplementarna (180°)</strong>
+                <span>Zieleń + Terakota (Idealny kontrast)</span>
+              </button>
+
+              <button 
+                type="button" 
+                class="harmony-btn" 
+                [class.active]="customHarmony() === 'analogous'" 
+                (click)="setHarmony('analogous')">
+                <strong>Analogiczna (+35°)</strong>
+                <span>Zieleń + Limonka/Mięta (Spokój natury)</span>
+              </button>
+
+              <button 
+                type="button" 
+                class="harmony-btn" 
+                [class.active]="customHarmony() === 'split'" 
+                (click)="setHarmony('split')">
+                <strong>Rozszczepiona (150°)</strong>
+                <span>Zieleń + Delikatny koral (Szlachetny)</span>
+              </button>
+
+              <button 
+                type="button" 
+                class="harmony-btn" 
+                [class.active]="customHarmony() === 'triadic'" 
+                (click)="setHarmony('triadic')">
+                <strong>Triada (120°)</strong>
+                <span>Zrównoważony trójkąt barw</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- DARK MODE TINT SELECTION -->
+          <div class="studio-field">
+            <label class="studio-label">4. Odcień Tła w Trybie Ciemnym:</label>
+            <div class="touch-segments">
+              <button 
+                type="button" 
+                class="seg-btn" 
+                [class.active]="darkTint() === 'organic'" 
+                (click)="setDarkTint('organic')">
+                🌲 Leśna Noc (Ziołowy)
+              </button>
+              <button 
+                type="button" 
+                class="seg-btn" 
+                [class.active]="darkTint() === 'neutral'" 
+                (click)="setDarkTint('neutral')">
+                🌑 Węgiel (Szary)
+              </button>
+              <button 
+                type="button" 
+                class="seg-btn" 
+                [class.active]="darkTint() === 'oled'" 
+                (click)="setDarkTint('oled')">
+                🖤 Głęboki OLED
+              </button>
+            </div>
+          </div>
+
+          <!-- DAY / NIGHT TOGGLE -->
+          <div class="toggle-mode-strip">
+            <div>
+              <strong>Aktualny tryb: {{ theme() === 'dark' ? 'Ciemny 🌙 (Faworyt Ady)' : 'Jasny ☀️' }}</strong>
+              <p class="text-xs text-muted">Kolory dostosowują się w ułamku sekundy.</p>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" (click)="toggleTheme()">
+              Przełącz na {{ theme() === 'dark' ? 'Jasny ☀️' : 'Ciemny 🌙' }}
+            </button>
+          </div>
+
+        </div>
+      </div>
+    }
 
     <!-- TAB 1: HOME / PULPIT -->
     @if (currentTab() === 'home' || currentTab() === 'all') {
@@ -351,7 +583,7 @@
       </div>
     }
 
-    <!-- TAB 3: ADD EXPENSE / NOWY WYDATEK (Zoptymalizowany pod telefon) -->
+    <!-- TAB 3: ADD EXPENSE / NOWY WYDATEK -->
     @if (currentTab() === 'add' || currentTab() === 'all') {
       <div class="screen-view">
         <div class="section-title-wrap">
@@ -362,7 +594,7 @@
         <div class="card form-card">
           <form (submit)="$event.preventDefault()" class="mobile-vertical-form">
             
-            <!-- CAMERA TRIGGER BUTTON (DUŻY I WYRAŹNY NA TELEFONIE) -->
+            <!-- CAMERA TRIGGER BUTTON -->
             <div class="camera-hero-card" (click)="camInput.click()">
               <input #camInput type="file" accept="image/*" capture="environment" style="display:none;" (change)="onReceiptSelected($event)" />
               <div class="cam-icon">📸</div>
@@ -378,7 +610,7 @@
               }
             </div>
 
-            <!-- AMOUNT FIELD (DUŻE CYFRY) -->
+            <!-- AMOUNT FIELD -->
             <div class="form-field">
               <label class="field-label required">Kwota zakupu</label>
               <div class="amount-input-box">
@@ -497,83 +729,6 @@
               </button>
             </div>
           </form>
-        </div>
-      </div>
-    }
-
-    <!-- TAB 4: WIFE PICKER / WYBÓR DLA ADRIANNY -->
-    @if (currentTab() === 'wife-picker' || currentTab() === 'all') {
-      <div class="screen-view">
-        <div class="section-title-wrap">
-          <h2>✨ Strefa Wyboru dla Adrianny</h2>
-          <p>Wybierz styl, który najbardziej cieszy Twoje oko na telefonie!</p>
-        </div>
-
-        <div class="theme-cards-stack">
-          <!-- CARD 1: SAGE -->
-          <div 
-            class="choice-card" 
-            [class.active]="palette() === 'sage'"
-            (click)="setPalette('sage')">
-            <div class="choice-swatches">
-              <span class="swatch" style="background: #2d5a43;"></span>
-              <span class="swatch" style="background: #eaf3ed;"></span>
-              <span class="swatch" style="background: #d97736;"></span>
-            </div>
-            <h3>🌿 1. Szałwia & Ciepły Len (Nordic Cozy)</h3>
-            <p>Spokojna, domowa, naturalna kolorystyka. Kojarzy się ze skandynawskim wnętrzem, ciepłą herbatą i relaksem. Najbardziej przyjazny dla oczu.</p>
-            <div class="choice-tag">Polecany do domu</div>
-            <button class="btn btn-block" [class.btn-primary]="palette() === 'sage'" [class.btn-outline]="palette() !== 'sage'">
-              {{ palette() === 'sage' ? '✓ Wybrany w tej chwili' : 'Wybierz ten motyw' }}
-            </button>
-          </div>
-
-          <!-- CARD 2: EMERALD -->
-          <div 
-            class="choice-card" 
-            [class.active]="palette() === 'emerald'"
-            (click)="setPalette('emerald')">
-            <div class="choice-swatches">
-              <span class="swatch" style="background: #059669;"></span>
-              <span class="swatch" style="background: #ecfdf5;"></span>
-              <span class="swatch" style="background: #6366f1;"></span>
-            </div>
-            <h3>💎 2. Szmaragdowy Fintech (Modern Tech)</h3>
-            <p>Wyrazisty, dynamiczny, jak w nowoczesnych aplikacjach bankowych (Revolut). Czyste biele i soczysta zieleń.</p>
-            <div class="choice-tag">Świeży & Nowoczesny</div>
-            <button class="btn btn-block" [class.btn-primary]="palette() === 'emerald'" [class.btn-outline]="palette() !== 'emerald'">
-              {{ palette() === 'emerald' ? '✓ Wybrany w tej chwili' : 'Wybierz ten motyw' }}
-            </button>
-          </div>
-
-          <!-- CARD 3: INDIGO -->
-          <div 
-            class="choice-card" 
-            [class.active]="palette() === 'indigo'"
-            (click)="setPalette('indigo')">
-            <div class="choice-swatches">
-              <span class="swatch" style="background: #4f46e5;"></span>
-              <span class="swatch" style="background: #eef2ff;"></span>
-              <span class="swatch" style="background: #06b6d4;"></span>
-            </div>
-            <h3>💼 3. Granat & Błękit (Pro Minimal)</h3>
-            <p>Ponadczasowy, minimalistyczny i stonowany. Chłodne odcienie błękitu i granatu.</p>
-            <div class="choice-tag">Klasyka & Minimalizm</div>
-            <button class="btn btn-block" [class.btn-primary]="palette() === 'indigo'" [class.btn-outline]="palette() !== 'indigo'">
-              {{ palette() === 'indigo' ? '✓ Wybrany w tej chwili' : 'Wybierz ten motyw' }}
-            </button>
-          </div>
-        </div>
-
-        <!-- DAY / NIGHT TOGGLE BOX -->
-        <div class="card toggle-mode-card">
-          <div class="t-mode-texts">
-            <strong>Tryb dzień / noc</strong>
-            <span>Aktualnie: {{ theme() === 'light' ? 'Jasny ☀️' : 'Ciemny 🌙' }}</span>
-          </div>
-          <button type="button" class="btn btn-outline" (click)="toggleTheme()">
-            Przełącz na {{ theme() === 'light' ? 'Ciemny 🌙' : 'Jasny ☀️' }}
-          </button>
         </div>
       </div>
     }

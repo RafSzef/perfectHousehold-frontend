@@ -16,6 +16,22 @@ export interface Transaction {
   split: '50/50' | '100% On' | '100% Ona';
 }
 
+export type PresetKey = 'sage' | 'olive' | 'eucalyptus' | 'matcha' | 'pine' | 'custom';
+export type HarmonyMode = 'complementary' | 'analogous' | 'split' | 'triadic' | 'monochrome';
+export type DarkTint = 'organic' | 'neutral' | 'oled';
+
+export interface PresetDef {
+  key: PresetKey;
+  name: string;
+  subtitle: string;
+  hue: number;
+  saturation: number;
+  harmony: HarmonyMode;
+  tag: string;
+  dotColor: string;
+  accentDotColor: string;
+}
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -24,28 +40,93 @@ export interface Transaction {
   styleUrl: './app.scss',
 })
 export class App {
-  // Theme state
-  theme = signal<'light' | 'dark'>('light');
-  palette = signal<'sage' | 'emerald' | 'indigo'>('sage');
+  // Theme state - DARK IS DEFAULT per Adrianna's choice!
+  theme = signal<'light' | 'dark'>('dark');
+  currentPreset = signal<PresetKey>('sage');
   density = signal<'spacious' | 'compact'>('spacious');
+
+  // Interactive Color Wheel Generator state
+  customHue = signal<number>(152); // Sage default: ~152 deg
+  customSaturation = signal<number>(38); // Soft muted: ~38%
+  customHarmony = signal<HarmonyMode>('complementary');
+  darkTint = signal<DarkTint>('organic'); // 'organic' = cozy forest night tint
 
   // Network info
   localIp = '192.168.1.3';
   localUrl = 'http://192.168.1.3:4200';
   copiedUrl = signal<boolean>(false);
-  showNetworkBar = signal<boolean>(false); // Collapsed by default on mobile for clean UI
+  showNetworkBar = signal<boolean>(false);
 
-  // Active view tab: on mobile it shows one clean screen at a time
-  currentTab = signal<'home' | 'expenses' | 'add' | 'wife-picker' | 'limits' | 'all'>('home');
+  // Active view tab: on mobile it shows one screen at a time
+  currentTab = signal<'home' | 'expenses' | 'add' | 'wife-picker' | 'limits' | 'all'>('wife-picker');
 
   // Mobile layout state
-  desktopTableView = signal<boolean>(false); // false = cards on mobile, true = wide table
+  desktopTableView = signal<boolean>(false);
 
   // Filters for table
   searchQuery = signal<string>('');
   selectedCategory = signal<string>('all');
   selectedUser = signal<string>('all');
   selectedStatus = signal<string>('all');
+
+  // 5 Presets inspired by Sage, Nature and Color Theory
+  presets: PresetDef[] = [
+    {
+      key: 'sage',
+      name: 'Leśna Szałwia & Len',
+      subtitle: 'Klasyczna, uspokajająca zieleń szałwii z terakotowym akcentem. Zwycięzca Ady!',
+      hue: 152,
+      saturation: 38,
+      harmony: 'complementary',
+      tag: '⭐ Faworyt Ady',
+      dotColor: '#529b71',
+      accentDotColor: '#d97736'
+    },
+    {
+      key: 'olive',
+      name: 'Ciepła Oliwka & Bursztyn',
+      subtitle: 'Głęboka, śródziemnomorska oliwka z ciepłym miodowo-bursztynowym blaskiem.',
+      hue: 98,
+      saturation: 42,
+      harmony: 'complementary',
+      tag: 'Ciepły & Przytulny',
+      dotColor: '#8a9a4e',
+      accentDotColor: '#d98b2b'
+    },
+    {
+      key: 'eucalyptus',
+      name: 'Eukaliptus & Cynamon',
+      subtitle: 'Chłodniejsza, miękka srebrzysta zieleń z cynamonowo-miedzianym akcentem.',
+      hue: 172,
+      saturation: 32,
+      harmony: 'complementary',
+      tag: 'Świeży & Spokojny',
+      dotColor: '#4ea193',
+      accentDotColor: '#c76e48'
+    },
+    {
+      key: 'matcha',
+      name: 'Herbata Matcha & Limonka',
+      subtitle: 'Kremowa ziołowa zieleń w harmonii analogicznej z akcentem świeżej mięty.',
+      hue: 132,
+      saturation: 44,
+      harmony: 'analogous',
+      tag: 'Organiczna Harmonia',
+      dotColor: '#5fa563',
+      accentDotColor: '#84cc16'
+    },
+    {
+      key: 'pine',
+      name: 'Morski Mech & Koral',
+      subtitle: 'Głęboki iglasty odcień mchu połączony z rozproszonym miękkim koralem.',
+      hue: 164,
+      saturation: 46,
+      harmony: 'split',
+      tag: 'Głęboki & Szlachetny',
+      dotColor: '#3d947b',
+      accentDotColor: '#e06c58'
+    }
+  ];
 
   // Form mock models
   newExpense = {
@@ -203,6 +284,113 @@ export class App {
     }
   ]);
 
+  // Color wheel calculations: Primary Hue & Accent Hue
+  calculatedAccentHue = computed(() => {
+    const h = this.customHue();
+    const mode = this.customHarmony();
+
+    switch (mode) {
+      case 'complementary':
+        return (h + 180) % 360;
+      case 'analogous':
+        return (h + 35) % 360;
+      case 'split':
+        return (h + 150) % 360;
+      case 'triadic':
+        return (h + 120) % 360;
+      case 'monochrome':
+        return h;
+    }
+  });
+
+  // Coordinates on SVG Color Wheel (Radius = 52, Center = 70, 70)
+  wheelCoordinates = computed(() => {
+    const r = 48;
+    const cx = 65;
+    const cy = 65;
+    
+    // Primary dot coordinates
+    const pRad = ((this.customHue() - 90) * Math.PI) / 180;
+    const px = cx + r * Math.cos(pRad);
+    const py = cy + r * Math.sin(pRad);
+
+    // Accent dot coordinates
+    const aRad = ((this.calculatedAccentHue() - 90) * Math.PI) / 180;
+    const ax = cx + r * Math.cos(aRad);
+    const ay = cy + r * Math.sin(aRad);
+
+    return { cx, cy, px, py, ax, ay };
+  });
+
+  // Dynamic CSS variables injected on .app-container
+  dynamicThemeStyles = computed(() => {
+    const h = this.customHue();
+    const s = this.customSaturation();
+    const ah = this.calculatedAccentHue();
+    const isDark = this.theme() === 'dark';
+    const tint = this.darkTint();
+
+    if (isDark) {
+      // Warm, cozy organic dark mode with sage/earthen undertones
+      let bgPage = `hsl(${h}, 18%, 8%)`;
+      let bgSurface = `hsl(${h}, 15%, 13%)`;
+      let bgSubtle = `hsl(${h}, 16%, 10%)`;
+      let bgHover = `hsl(${h}, 14%, 18%)`;
+      let border = `hsl(${h}, 12%, 21%)`;
+
+      if (tint === 'neutral') {
+        bgPage = '#0f172a';
+        bgSurface = '#1e293b';
+        bgSubtle = '#141e2e';
+        bgHover = '#334155';
+        border = '#334155';
+      } else if (tint === 'oled') {
+        bgPage = '#000000';
+        bgSurface = '#121212';
+        bgSubtle = '#080808';
+        bgHover = '#1f1f1f';
+        border = '#2a2a2a';
+      }
+
+      return {
+        '--primary': `hsl(${h}, ${s + 10}%, 62%)`,
+        '--primary-hover': `hsl(${h}, ${s + 10}%, 70%)`,
+        '--primary-light': `hsl(${h}, ${Math.min(s, 35)}%, 20%)`,
+        '--primary-ring': `hsla(${h}, ${s}%, 62%, 0.25)`,
+        '--accent': `hsl(${ah}, ${Math.min(s + 20, 85)}%, 64%)`,
+        '--accent-light': `hsl(${ah}, ${Math.min(s, 35)}%, 22%)`,
+        '--bg-page': bgPage,
+        '--bg-surface': bgSurface,
+        '--bg-subtle': bgSubtle,
+        '--bg-hover': bgHover,
+        '--border': border,
+        '--text-main': '#f8fafc',
+        '--text-muted': `hsl(${h}, 10%, 72%)`,
+        '--table-stripe': `hsl(${h}, 15%, 11%)`,
+        '--chip-bg': `hsl(${h}, 14%, 17%)`,
+      };
+    } else {
+      // Light Mode with soft linen/sage warmth
+      return {
+        '--primary': `hsl(${h}, ${s}%, 30%)`,
+        '--primary-hover': `hsl(${h}, ${s}%, 24%)`,
+        '--primary-light': `hsl(${h}, ${s}%, 93%)`,
+        '--primary-ring': `hsla(${h}, ${s}%, 30%, 0.25)`,
+        '--accent': `hsl(${ah}, ${Math.min(s + 15, 85)}%, 48%)`,
+        '--accent-light': `hsl(${ah}, 40%, 94%)`,
+        '--bg-page': `hsl(${h}, 15%, 98%)`,
+        '--bg-surface': '#ffffff',
+        '--bg-subtle': `hsl(${h}, 15%, 94%)`,
+        '--bg-hover': `hsl(${h}, 15%, 90%)`,
+        '--border': `hsl(${h}, 12%, 87%)`,
+        '--text-main': '#0f172a',
+        '--text-muted': '#64748b',
+        '--table-stripe': `hsl(${h}, 10%, 97%)`,
+        '--chip-bg': `hsl(${h}, 12%, 93%)`,
+      };
+    }
+  });
+
   // Filtered transactions computation
   filteredTransactions = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
@@ -240,13 +428,52 @@ export class App {
       .reduce((sum, t) => sum + t.amount, 0);
   });
 
+  // Apply a preset
+  selectPreset(preset: PresetDef) {
+    this.currentPreset.set(preset.key);
+    this.customHue.set(preset.hue);
+    this.customSaturation.set(preset.saturation);
+    this.customHarmony.set(preset.harmony);
+  }
+
+  // Set custom slider
+  onHueChange(hue: number) {
+    this.customHue.set(Number(hue));
+    this.currentPreset.set('custom');
+  }
+
+  onSaturationChange(sat: number) {
+    this.customSaturation.set(Number(sat));
+    this.currentPreset.set('custom');
+  }
+
+  setHarmony(mode: HarmonyMode) {
+    this.customHarmony.set(mode);
+    this.currentPreset.set('custom');
+  }
+
+  setDarkTint(tint: DarkTint) {
+    this.darkTint.set(tint);
+  }
+
+  // Roll dice for an earthy harmonized nature theme
+  randomizeEarthyTheme() {
+    // Earthy green/botanical hues: 80° (olive) to 180° (teal/sea moss)
+    const earthHues = [88, 98, 115, 128, 142, 152, 160, 168, 175];
+    const randomHue = earthHues[Math.floor(Math.random() * earthHues.length)];
+    const randomSat = Math.floor(Math.random() * 25) + 30; // 30% - 55%
+    const harmonies: HarmonyMode[] = ['complementary', 'analogous', 'split'];
+    const randomHarmony = harmonies[Math.floor(Math.random() * harmonies.length)];
+
+    this.customHue.set(randomHue);
+    this.customSaturation.set(randomSat);
+    this.customHarmony.set(randomHarmony);
+    this.currentPreset.set('custom');
+  }
+
   // Switchers
   toggleTheme() {
     this.theme.update(t => t === 'light' ? 'dark' : 'light');
-  }
-
-  setPalette(p: 'sage' | 'emerald' | 'indigo') {
-    this.palette.set(p);
   }
 
   setDensity(d: 'spacious' | 'compact') {
