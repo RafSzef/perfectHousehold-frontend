@@ -1,289 +1,223 @@
 <div [attr.data-theme]="theme()" [attr.data-palette]="palette()" [attr.data-density]="density()" class="app-container">
   
-  <!-- NETWORK ACCESS STRIP (Lokalny Ethernet / Wi-Fi dla telefonu Adrianny) -->
-  <aside class="network-strip">
-    <div class="network-strip__content">
-      <div class="network-info">
-        <span class="wifi-icon">📱</span>
-        <span class="network-text">
-          Dostęp z telefonu Adrianny (w domowej sieci Wi-Fi):
-          <strong class="ip-highlight">{{ localUrl }}</strong>
-        </span>
-      </div>
-      <button type="button" class="btn-copy-url" (click)="copyNetworkUrl()">
-        {{ copiedUrl() ? '✓ Skopiowano adres!' : '📋 Kopiuj link dla Adrianny' }}
-      </button>
-    </div>
-  </aside>
-
-  <!-- TOP BANNER / DEMO CONTROL BAR -->
-  <aside class="demo-bar">
-    <div class="demo-bar__content">
-      <div class="demo-badge">
-        <span class="pulse-dot"></span>
-        <strong>Projekt demonstracyjny: Adrianna & Rafał</strong>
-      </div>
-      
-      <div class="demo-controls">
-        <div class="control-group">
-          <span class="control-label">Paleta:</span>
-          <div class="palette-buttons">
-            <button 
-              type="button" 
-              class="palette-btn" 
-              [class.active]="palette() === 'sage'" 
-              (click)="setPalette('sage')"
-              title="Ciepła Szałwia & Len">
-              <span class="color-dot sage"></span>
-              <span>1. Szałwia & Len</span>
-            </button>
-            <button 
-              type="button" 
-              class="palette-btn" 
-              [class.active]="palette() === 'emerald'" 
-              (click)="setPalette('emerald')"
-              title="Szmaragdowy Fintech">
-              <span class="color-dot emerald"></span>
-              <span>2. Szmaragd Fintech</span>
-            </button>
-            <button 
-              type="button" 
-              class="palette-btn" 
-              [class.active]="palette() === 'indigo'" 
-              (click)="setPalette('indigo')"
-              title="Minimalistyczny Granat">
-              <span class="color-dot indigo"></span>
-              <span>3. Granat & Błękit</span>
-            </button>
-          </div>
+  <!-- COMPACT MOBILE-FRIENDLY TOP BANNER -->
+  <header class="app-topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-icon">🏠</div>
+        <div class="brand-title">
+          <h1>perfectHousehold</h1>
+          <span class="brand-sub">Domowe finanse • Ada & Rafał</span>
         </div>
+      </div>
 
-        <div class="divider hide-mobile"></div>
-
-        <div class="control-group">
-          <button type="button" class="action-toggle-btn" (click)="toggleTheme()">
-            @if (theme() === 'light') {
-              <span class="icon">🌙</span> <span>Ciemny</span>
-            } @else {
-              <span class="icon">☀️</span> <span>Jasny</span>
-            }
-          </button>
-
+      <div class="topbar-actions">
+        <!-- Quick Palette & Theme controls -->
+        <div class="palette-mini-picker">
           <button 
             type="button" 
-            class="action-toggle-btn hide-mobile"
-            (click)="setDensity(density() === 'spacious' ? 'compact' : 'spacious')">
-            <span class="icon">📐</span>
-            <span>Tabela: {{ density() === 'spacious' ? 'Przestronna' : 'Zagęszczona' }}</span>
-          </button>
+            class="palette-dot sage" 
+            [class.active]="palette() === 'sage'" 
+            (click)="setPalette('sage')"
+            title="Szałwia & Len"></button>
+          <button 
+            type="button" 
+            class="palette-dot emerald" 
+            [class.active]="palette() === 'emerald'" 
+            (click)="setPalette('emerald')"
+            title="Szmaragd"></button>
+          <button 
+            type="button" 
+            class="palette-dot indigo" 
+            [class.active]="palette() === 'indigo'" 
+            (click)="setPalette('indigo')"
+            title="Granat"></button>
         </div>
+
+        <button type="button" class="theme-toggle-icon" (click)="toggleTheme()" title="Przełącz tryb dzień/noc">
+          {{ theme() === 'light' ? '🌙' : '☀️' }}
+        </button>
+
+        <button 
+          type="button" 
+          class="network-pill-btn" 
+          [class.active]="showNetworkBar()" 
+          (click)="showNetworkBar.update(v => !v)"
+          title="Pokaż adres IP sieci domowej">
+          📶
+        </button>
       </div>
     </div>
-  </aside>
 
-  <!-- MAIN APP HEADER -->
-  <header class="app-header">
-    <div class="header-left">
-      <div class="logo">
-        <div class="logo-icon">🏠</div>
-        <div class="logo-text">
-          <h1>perfectHousehold</h1>
-          <span class="tagline">Domowe Centrum Finansów i Życia</span>
-        </div>
-      </div>
-
-      <nav class="main-nav hide-mobile">
-        <button class="nav-item" [class.active]="currentTab() === 'all'" (click)="setTab('all')">
-          <span class="nav-icon">📊</span> Pulpit Całości
+    <!-- COLLAPSIBLE LAN IP INFO -->
+    @if (showNetworkBar()) {
+      <div class="network-collapse">
+        <span>Adres w Wi-Fi: <strong>{{ localUrl }}</strong></span>
+        <button type="button" class="btn-copy-small" (click)="copyNetworkUrl()">
+          {{ copiedUrl() ? '✓ Skopiowano' : 'Kopiuj link' }}
         </button>
-        <button class="nav-item" [class.active]="currentTab() === 'table'" (click)="setTab('table')">
-          <span class="nav-icon">💳</span> Duża Tabela Wydatków
-        </button>
-        <button class="nav-item" [class.active]="currentTab() === 'forms'" (click)="setTab('forms')">
-          <span class="nav-icon">✍️</span> Formularze & Wpisy
-        </button>
-        <button class="nav-item highlight-tab" [class.active]="currentTab() === 'wife-picker'" (click)="setTab('wife-picker')">
-          <span class="nav-icon">✨</span> Wybór dla Adrianny
-        </button>
-      </nav>
-    </div>
-
-    <div class="header-right">
-      <div class="household-members">
-        <span class="member-chip" [class.active]="newExpense.paidBy === 'Rafał'" (click)="newExpense.paidBy = 'Rafał'">
-          <span class="avatar male">R</span> Rafał
-        </span>
-        <span class="member-chip" [class.active]="newExpense.paidBy === 'Adrianna'" (click)="newExpense.paidBy = 'Adrianna'">
-          <span class="avatar female">A</span> Adrianna
-        </span>
       </div>
-
-      <button class="btn btn-primary btn-sm hide-mobile" (click)="setTab('forms')">
-        <span>+</span> Nowy wydatek
-      </button>
-    </div>
-  </header>
-
-  <!-- MAIN CONTENT AREA -->
-  <main class="app-content">
-
-    <!-- KPI SUMMARY CARDS -->
-    <section class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-header">
-          <span class="kpi-title">Budżet Październik 2026</span>
-          <span class="kpi-badge">67% zużyte</span>
-        </div>
-        <div class="kpi-value">4 350 <small>zł</small> <span class="kpi-sub">/ 6 500 zł</span></div>
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: 67%"></div>
-        </div>
-        <div class="kpi-footer">
-          <span>Pozostało do końca miesiąca: <strong>2 150 zł</strong></span>
-        </div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-header">
-          <span class="kpi-title">Zsynchronizowano z Banku</span>
-          <span class="source-tag">GoCardless API</span>
-        </div>
-        <div class="kpi-value">3 nowe</div>
-        <p class="kpi-desc">Transakcje z konta bankowego czekają na szybką akceptację.</p>
-        <div class="kpi-footer action-link" (click)="setTab('table')">
-          <span>Przejdź do zatwierdzenia →</span>
-        </div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-header">
-          <span class="kpi-title">Skaner Paragonów</span>
-          <span class="ai-tag">Gemini OCR</span>
-        </div>
-        <div class="kpi-value">12 paragonów</div>
-        <p class="kpi-desc">Rozpoznano automatycznie ze zdjęć z telefonu Adrianny i Rafała.</p>
-        <div class="kpi-footer">
-          <span>Ostatni: Biedronka (dzisiaj, 11:20)</span>
-        </div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-header">
-          <span class="kpi-title">Podział Kosztów (50/50)</span>
-          <span class="kpi-balance">Wyrównane</span>
-        </div>
-        <div class="kpi-value">Rafał: +45 zł</div>
-        <p class="kpi-desc">Rafał wydał w tym miesiącu na dom o 90 zł więcej niż Adrianna.</p>
-        <div class="kpi-footer">
-          <span>Sugerowany przelew wyrównujący: 45 zł dla Rafała</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION: SPECIAL ADRIANNA PICKER & COMPARISON -->
-    @if (currentTab() === 'all' || currentTab() === 'wife-picker') {
-      <section class="section-card wife-section">
-        <div class="section-card__header">
-          <div>
-            <h2 class="section-title">✨ Strefa Wyboru dla Adrianny — Który klimat najbardziej Ci odpowiada?</h2>
-            <p class="section-subtitle">Aplikacja domowa powinna być przede wszystkim przyjazna, czytelna i estetyczna na telefonie oraz komputerze. Dotknij kartę poniżej, aby natychmiast zobaczyć jak zmienia się cały program:</p>
-          </div>
-        </div>
-
-        <div class="theme-comparison-grid">
-          <!-- CARD 1 -->
-          <div 
-            class="palette-preview-card" 
-            [class.selected]="palette() === 'sage'"
-            (click)="setPalette('sage')">
-            <div class="palette-swatch-row">
-              <span class="swatch" style="background: #2d5a43;"></span>
-              <span class="swatch" style="background: #eaf3ed;"></span>
-              <span class="swatch" style="background: #d97736;"></span>
-              <span class="swatch" style="background: #f8fafc;"></span>
-            </div>
-            <h3>🌿 Wariant 1: Szałwia & Ciepły Len (Nordic Cozy)</h3>
-            <p>Spokojna, domowa, naturalna kolorystyka. Kojarzy się ze spokojem, skandynawskim wnętrzem i domowym ciepłem. Nie męczy oczu przy codziennym korzystaniu na smartfonie.</p>
-            <div class="preview-tag">Rekomendowany do domu i rodziny</div>
-            <button class="btn btn-outline btn-block">
-              {{ palette() === 'sage' ? '✓ Wybrany w tej chwili' : 'Wybierz ten motyw' }}
-            </button>
-          </div>
-
-          <!-- CARD 2 -->
-          <div 
-            class="palette-preview-card" 
-            [class.selected]="palette() === 'emerald'"
-            (click)="setPalette('emerald')">
-            <div class="palette-swatch-row">
-              <span class="swatch" style="background: #059669;"></span>
-              <span class="swatch" style="background: #ecfdf5;"></span>
-              <span class="swatch" style="background: #6366f1;"></span>
-              <span class="swatch" style="background: #0f172a;"></span>
-            </div>
-            <h3>💎 Wariant 2: Szmaragdowy Fintech (Modern Tech)</h3>
-            <p>Wyrazisty, nowoczesny styl w stylu Revoluta czy aplikacji bankowych. Czyste biele, rześki szmaragd i dynamiczne kontrasty.</p>
-            <div class="preview-tag">Czysty, świeży, precyzyjny</div>
-            <button class="btn btn-outline btn-block">
-              {{ palette() === 'emerald' ? '✓ Wybrany w tej chwili' : 'Wybierz ten motyw' }}
-            </button>
-          </div>
-
-          <!-- CARD 3 -->
-          <div 
-            class="palette-preview-card" 
-            [class.selected]="palette() === 'indigo'"
-            (click)="setPalette('indigo')">
-            <div class="palette-swatch-row">
-              <span class="swatch" style="background: #4f46e5;"></span>
-              <span class="swatch" style="background: #eef2ff;"></span>
-              <span class="swatch" style="background: #06b6d4;"></span>
-              <span class="swatch" style="background: #1e293b;"></span>
-            </div>
-            <h3>💼 Wariant 3: Klasyczny Granat & Błękit (Pro Minimal)</h3>
-            <p>Ponadczasowy, biznesowo-organizacyjny. Stonowany chłodny błękit i granat. Maksimum prostoty i elegancji.</p>
-            <div class="preview-tag">Klasyka i minimalizm</div>
-            <button class="btn btn-outline btn-block">
-              {{ palette() === 'indigo' ? '✓ Wybrany w tej chwili' : 'Wybierz ten motyw' }}
-            </button>
-          </div>
-        </div>
-      </section>
     }
 
-    <!-- SECTION: DUŻA TABELA / WIDOK KAFELKOWY WYDATKÓW -->
-    @if (currentTab() === 'all' || currentTab() === 'table') {
-      <section class="section-card table-section">
-        <div class="section-card__header">
-          <div>
-            <h2 class="section-title">📋 Historia Wydatków Domowych</h2>
-            <p class="section-subtitle">Wyszukiwanie na żywo, statusy paragonów i kategoryzacja.</p>
+    <!-- DESKTOP NAVIGATION -->
+    <nav class="desktop-nav">
+      <button class="d-nav-item" [class.active]="currentTab() === 'all'" (click)="setTab('all')">
+        📊 Wszystko na raz
+      </button>
+      <button class="d-nav-item" [class.active]="currentTab() === 'home'" (click)="setTab('home')">
+        🏠 Pulpit
+      </button>
+      <button class="d-nav-item" [class.active]="currentTab() === 'expenses'" (click)="setTab('expenses')">
+        💳 Wydatki i Tabela
+      </button>
+      <button class="d-nav-item" [class.active]="currentTab() === 'add'" (click)="setTab('add')">
+        ➕ Nowy Wydatek
+      </button>
+      <button class="d-nav-item" [class.active]="currentTab() === 'wife-picker'" (click)="setTab('wife-picker')">
+        ✨ Wybór dla Adrianny
+      </button>
+      <button class="d-nav-item" [class.active]="currentTab() === 'limits'" (click)="setTab('limits')">
+        ⚙️ Limity Budżetu
+      </button>
+    </nav>
+  </header>
+
+  <!-- MAIN SCROLLABLE CONTENT -->
+  <main class="main-body">
+
+    <!-- TAB 1: HOME / PULPIT -->
+    @if (currentTab() === 'home' || currentTab() === 'all') {
+      <div class="screen-view">
+        
+        <!-- WELCOME BANNER -->
+        <div class="welcome-box">
+          <div class="welcome-text">
+            <h2>Cześć Adrianna & Rafał! 👋</h2>
+            <p>Październik 2026: Zostało Wam <strong>2 150 zł</strong> do wykorzystania z budżetu domowego.</p>
           </div>
-          <div class="table-actions">
-            <!-- MOBILE VIEW TOGGLE -->
-            <button class="btn btn-outline btn-sm mobile-toggle-btn" (click)="mobileCardView.update(v => !v)">
-              {{ mobileCardView() ? '📊 Przełącz na tabelę' : '📱 Przełącz na kafelki' }}
+          <div class="welcome-actions">
+            <button class="btn btn-primary" (click)="setTab('add')">
+              <span>📸</span> Dodaj paragon
             </button>
-            <button class="btn btn-primary btn-sm hide-mobile" (click)="setTab('forms')">📷 Skanuj paragon</button>
+            <button class="btn btn-outline" (click)="setTab('wife-picker')">
+              <span>✨</span> Zmień styl
+            </button>
           </div>
         </div>
 
-        <!-- FILTER TOOLBAR -->
-        <div class="filters-toolbar">
-          <div class="search-box">
-            <span class="search-icon">🔍</span>
-            <input 
-              type="text" 
-              placeholder="Szukaj sklepu lub opisu (Biedronka, PGNiG)..." 
-              [ngModel]="searchQuery()"
-              (ngModelChange)="searchQuery.set($event)"
-              class="form-control" />
+        <!-- KPI SUMMARY CARDS -->
+        <div class="cards-grid">
+          <div class="card kpi-card">
+            <div class="card-header-clean">
+              <span class="card-label">Budżet miesięczny</span>
+              <span class="badge-status-pill badge-primary">67% wydane</span>
+            </div>
+            <div class="kpi-big-number">
+              4 350 <small>zł</small> <span class="kpi-target">/ 6 500 zł</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" style="width: 67%;"></div>
+            </div>
+            <span class="card-footer-text">Zostało <strong>2 150 zł</strong> do końca miesiąca</span>
           </div>
 
-          <div class="filter-dropdowns">
-            <div class="filter-item">
+          <div class="card kpi-card">
+            <div class="card-header-clean">
+              <span class="card-label">Podział kosztów 50/50</span>
+              <span class="badge-status-pill badge-neutral">Zrównoważone</span>
+            </div>
+            <div class="kpi-big-number">
+              Rafał: +45 <small>zł</small>
+            </div>
+            <p class="card-desc">Rafał zapłacił w tym miesiącu za dom o 90 zł więcej niż Adrianna.</p>
+            <span class="card-footer-text text-accent">Ada zwraca Rafałowi 45 zł</span>
+          </div>
+
+          <div class="card kpi-card">
+            <div class="card-header-clean">
+              <span class="card-label">Bank PKO BP (GoCardless)</span>
+              <span class="badge-status-pill badge-info">Open Banking</span>
+            </div>
+            <div class="kpi-big-number">
+              3 <small>nowe</small>
+            </div>
+            <p class="card-desc">Transakcje automatycznie pobrane z konta bankowego.</p>
+            <a class="card-action-link" (click)="setTab('expenses')">Sprawdź transakcje →</a>
+          </div>
+
+          <div class="card kpi-card">
+            <div class="card-header-clean">
+              <span class="card-label">Paragony ze zdjęć</span>
+              <span class="badge-status-pill badge-accent">Gemini AI</span>
+            </div>
+            <div class="kpi-big-number">
+              12 <small>paragonów</small>
+            </div>
+            <p class="card-desc">Rozbite na pojedyncze pozycje zakupowe ze zdjęć telefonem.</p>
+            <a class="card-action-link" (click)="setTab('add')">+ Zrób zdjęcie paragonu →</a>
+          </div>
+        </div>
+
+        <!-- RECENT EXPENSES PREVIEW -->
+        <div class="section-container">
+          <div class="section-header-row">
+            <h3>Ostatnie wydatki</h3>
+            <button class="text-btn" (click)="setTab('expenses')">Zobacz wszystkie ({{ transactions().length }}) →</button>
+          </div>
+
+          <div class="mobile-cards-list">
+            @for (item of recentTransactions(); track item.id) {
+              <div class="tx-mobile-card" [class.is-income]="item.type === 'income'">
+                <div class="tx-m-left">
+                  <div class="tx-m-avatar">{{ item.merchant.substring(0, 2).toUpperCase() }}</div>
+                  <div class="tx-m-info">
+                    <strong>{{ item.merchant }}</strong>
+                    <div class="tx-m-sub">
+                      <span>{{ item.date }}</span> • 
+                      <span class="cat-tag">{{ item.category }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="tx-m-right">
+                  <span class="tx-m-amount" [class.negative]="item.type === 'expense'" [class.positive]="item.type === 'income'">
+                    {{ item.type === 'income' ? '+' : '' }}{{ item.amount | number:'1.2-2' }} zł
+                  </span>
+                  <span class="tx-m-payer" [class.payer-ada]="item.paidBy === 'Adrianna'">
+                    {{ item.paidBy }}
+                  </span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+      </div>
+    }
+
+    <!-- TAB 2: EXPENSES / WYDATKI I TABELA -->
+    @if (currentTab() === 'expenses' || currentTab() === 'all') {
+      <div class="screen-view">
+        <div class="section-title-wrap">
+          <h2>💳 Historia i Lista Wydatków</h2>
+          <p>Wyszukuj, filtruj po osobie lub kategorii i sprawdzaj paragony.</p>
+        </div>
+
+        <!-- MOBILE-FRIENDLY FILTERS -->
+        <div class="filter-box">
+          <div class="search-input-wrap">
+            <span class="search-ico">🔍</span>
+            <input 
+              type="text" 
+              class="mobile-input search-input" 
+              placeholder="Szukaj (Biedronka, PGNiG, Lidl)..." 
+              [ngModel]="searchQuery()" 
+              (ngModelChange)="searchQuery.set($event)" />
+          </div>
+
+          <div class="filter-chips-row">
+            <div class="chip-select">
               <label>Kategoria:</label>
-              <select [ngModel]="selectedCategory()" (ngModelChange)="selectedCategory.set($event)" class="form-select">
+              <select [ngModel]="selectedCategory()" (ngModelChange)="selectedCategory.set($event)" class="mobile-select">
                 <option value="all">Wszystkie</option>
                 <option value="Spożywcze">🛒 Spożywcze</option>
                 <option value="Rachunki">💡 Rachunki</option>
@@ -295,9 +229,9 @@
               </select>
             </div>
 
-            <div class="filter-item">
-              <label>Kto płacił:</label>
-              <select [ngModel]="selectedUser()" (ngModelChange)="selectedUser.set($event)" class="form-select">
+            <div class="chip-select">
+              <label>Kto:</label>
+              <select [ngModel]="selectedUser()" (ngModelChange)="selectedUser.set($event)" class="mobile-select">
                 <option value="all">Wszyscy</option>
                 <option value="Adrianna">Adrianna</option>
                 <option value="Rafał">Rafał</option>
@@ -305,9 +239,9 @@
               </select>
             </div>
 
-            <div class="filter-item">
+            <div class="chip-select">
               <label>Status:</label>
-              <select [ngModel]="selectedStatus()" (ngModelChange)="selectedStatus.set($event)" class="form-select">
+              <select [ngModel]="selectedStatus()" (ngModelChange)="selectedStatus.set($event)" class="mobile-select">
                 <option value="all">Wszystkie</option>
                 <option value="Zaksięgowane">Zaksięgowane</option>
                 <option value="Do weryfikacji">Do weryfikacji</option>
@@ -315,361 +249,432 @@
               </select>
             </div>
           </div>
-        </div>
 
-        <!-- TABLE SUMMARY STRIP -->
-        <div class="table-summary-strip">
-          <div class="summary-left">
-            Pozycje: <strong>{{ filteredTransactions().length }}</strong> z {{ transactions().length }}
-          </div>
-          <div class="summary-right">
-            Wydatki: <strong class="text-danger">-{{ totalSpent() | number:'1.2-2' }} zł</strong>
-            @if (totalIncome() > 0) {
-              <span class="divider-inline">|</span> Wpływy: <strong class="text-success">+{{ totalIncome() | number:'1.2-2' }} zł</strong>
-            }
+          <div class="view-switch-row">
+            <span class="count-pill">Wyników: <strong>{{ filteredTransactions().length }}</strong></span>
+            <button 
+              type="button" 
+              class="toggle-table-btn" 
+              (click)="desktopTableView.update(v => !v)">
+              {{ desktopTableView() ? '📱 Pokaż kafelki (mobilne)' : '📊 Pokaż pełną tabelę' }}
+            </button>
           </div>
         </div>
 
-        <!-- 1. MOBILE RESPONSIVE CARDS VIEW (Dla smartfona Adrianny) -->
-        <div class="mobile-transaction-cards" [class.force-show]="mobileCardView()">
-          @for (item of filteredTransactions(); track item.id) {
-            <div class="tx-card" [class.tx-income]="item.type === 'income'">
-              <div class="tx-card-top">
-                <div class="tx-card-merchant">
-                  <span class="merchant-logo">{{ item.merchant.substring(0, 2).toUpperCase() }}</span>
-                  <div>
-                    <strong>{{ item.merchant }}</strong>
-                    <div class="tx-meta-row">
-                      <span class="font-mono text-muted text-xs">{{ item.date }}</span>
-                      <span class="source-tag-xs">{{ item.source }}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="tx-card-amount" [class.positive]="item.type === 'income'" [class.negative]="item.type === 'expense'">
-                  {{ item.type === 'income' ? '+' : '' }}{{ item.amount | number:'1.2-2' }} zł
-                </div>
-              </div>
-
-              <div class="tx-card-bottom">
-                <div class="tx-badges">
-                  <span class="badge" [attr.data-cat]="item.category">{{ item.category }}</span>
-                  <span class="user-pill" [class.user-ada]="item.paidBy === 'Adrianna'" [class.user-rafal]="item.paidBy === 'Rafał'">
-                    {{ item.paidBy }} ({{ item.split }})
-                  </span>
-                </div>
-
-                <div class="tx-status-group">
-                  @if (item.hasReceipt) {
-                    <span class="receipt-icon yes">🧾 Paragon</span>
-                  }
-                  <span class="status-badge" [attr.data-status]="item.status">{{ item.status }}</span>
-                </div>
-              </div>
-            </div>
-          } @empty {
-            <div class="empty-state">
-              Brak transakcji spełniających wybrane filtry.
-            </div>
+        <!-- TOTAL STRIP -->
+        <div class="totals-bar">
+          <div>Wydatki: <strong class="text-danger">-{{ totalSpent() | number:'1.2-2' }} zł</strong></div>
+          @if (totalIncome() > 0) {
+            <div>Wpływy: <strong class="text-success">+{{ totalIncome() | number:'1.2-2' }} zł</strong></div>
           }
         </div>
 
-        <!-- 2. DESKTOP DATA TABLE (Dla komputera / tabletu) -->
-        <div class="table-responsive desktop-table" [class.hide-on-mobile]="mobileCardView()">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th style="width: 110px;">Data</th>
-                <th>Sklep / Odbiorca</th>
-                <th>Kategoria</th>
-                <th>Kto płacił</th>
-                <th>Podział</th>
-                <th>Źródło</th>
-                <th>Paragon</th>
-                <th>Status</th>
-                <th style="text-align: right;">Kwota</th>
-                <th style="text-align: center; width: 90px;">Akcje</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (item of filteredTransactions(); track item.id) {
-                <tr [class.income-row]="item.type === 'income'">
-                  <td class="font-mono text-muted">{{ item.date }}</td>
-                  <td>
-                    <div class="merchant-cell">
-                      <span class="merchant-logo">{{ item.merchant.substring(0, 2).toUpperCase() }}</span>
-                      <div>
-                        <strong>{{ item.merchant }}</strong>
-                        <span class="tx-id">{{ item.id }}</span>
+        <!-- VIEW A: MOBILE CARDS LIST -->
+        @if (!desktopTableView()) {
+          <div class="mobile-cards-list">
+            @for (item of filteredTransactions(); track item.id) {
+              <div class="tx-mobile-card" [class.is-income]="item.type === 'income'">
+                <div class="tx-card-top-line">
+                  <div class="tx-m-left">
+                    <div class="tx-m-avatar">{{ item.merchant.substring(0, 2).toUpperCase() }}</div>
+                    <div>
+                      <strong class="merchant-name">{{ item.merchant }}</strong>
+                      <div class="tx-m-sub">
+                        <span>{{ item.date }}</span> • <span>{{ item.source }}</span>
                       </div>
                     </div>
-                  </td>
-                  <td>
-                    <span class="badge" [attr.data-cat]="item.category">
-                      {{ item.category }}
+                  </div>
+                  <div class="tx-m-right">
+                    <span class="tx-m-amount" [class.negative]="item.type === 'expense'" [class.positive]="item.type === 'income'">
+                      {{ item.type === 'income' ? '+' : '' }}{{ item.amount | number:'1.2-2' }} zł
                     </span>
-                  </td>
-                  <td>
-                    <span class="user-pill" [class.user-ada]="item.paidBy === 'Adrianna'" [class.user-rafal]="item.paidBy === 'Rafał'">
-                      {{ item.paidBy }}
-                    </span>
-                  </td>
-                  <td><span class="split-pill">{{ item.split }}</span></td>
-                  <td><span class="source-pill">{{ item.source }}</span></td>
-                  <td>
-                    @if (item.hasReceipt) {
-                      <span class="receipt-icon yes" title="Paragon zeskanowany i przypisany">🧾 Tak</span>
-                    } @else {
-                      <span class="receipt-icon no" title="Brak paragonu">—</span>
-                    }
-                  </td>
-                  <td>
-                    <span class="status-badge" [attr.data-status]="item.status">
-                      {{ item.status }}
-                    </span>
-                  </td>
-                  <td style="text-align: right;" class="amount-cell" [class.positive]="item.type === 'income'" [class.negative]="item.type === 'expense'">
-                    {{ item.type === 'income' ? '+' : '' }}{{ item.amount | number:'1.2-2' }} zł
-                  </td>
-                  <td style="text-align: center;">
-                    <div class="row-actions">
-                      <button class="icon-btn" title="Edytuj">✏️</button>
-                      <button class="icon-btn" title="Szczegóły">🔍</button>
-                    </div>
-                  </td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="10" class="empty-state">
-                    Brak transakcji spełniających wybrane kryteria filtrów.
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </div>
 
-        <!-- TABLE FOOTER PAGINATION -->
-        <div class="table-pagination">
-          <span class="page-info">Wyświetlono 10 pozycji</span>
-          <div class="pagination-controls">
-            <button class="btn btn-outline btn-xs" disabled>Poprzednia</button>
-            <button class="btn btn-primary btn-xs active">1</button>
-            <button class="btn btn-outline btn-xs" disabled>Następna</button>
+                <div class="tx-card-bottom-line">
+                  <div class="pills-group">
+                    <span class="cat-pill" [attr.data-cat]="item.category">{{ item.category }}</span>
+                    <span class="payer-badge" [class.ada]="item.paidBy === 'Adrianna'">{{ item.paidBy }} ({{ item.split }})</span>
+                  </div>
+                  <div class="status-group">
+                    @if (item.hasReceipt) {
+                      <span class="has-receipt-tag">🧾 Paragon</span>
+                    }
+                    <span class="status-tag" [attr.data-status]="item.status">{{ item.status }}</span>
+                  </div>
+                </div>
+              </div>
+            } @empty {
+              <div class="empty-box">Brak transakcji dla wybranych filtrów.</div>
+            }
           </div>
-        </div>
-      </section>
+        }
+
+        <!-- VIEW B: WIDE DATA TABLE (Dla komputera lub na życzenie) -->
+        @if (desktopTableView()) {
+          <div class="table-scroll-container">
+            <table class="pure-data-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Sklep</th>
+                  <th>Kategoria</th>
+                  <th>Kto</th>
+                  <th>Podział</th>
+                  <th>Źródło</th>
+                  <th>Paragon</th>
+                  <th>Status</th>
+                  <th style="text-align: right;">Kwota</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of filteredTransactions(); track item.id) {
+                  <tr>
+                    <td class="font-mono text-xs">{{ item.date }}</td>
+                    <td><strong>{{ item.merchant }}</strong></td>
+                    <td><span class="cat-pill" [attr.data-cat]="item.category">{{ item.category }}</span></td>
+                    <td><span class="payer-badge" [class.ada]="item.paidBy === 'Adrianna'">{{ item.paidBy }}</span></td>
+                    <td class="text-xs">{{ item.split }}</td>
+                    <td class="text-xs">{{ item.source }}</td>
+                    <td>{{ item.hasReceipt ? '🧾 Tak' : '—' }}</td>
+                    <td><span class="status-tag" [attr.data-status]="item.status">{{ item.status }}</span></td>
+                    <td style="text-align: right;" class="font-bold font-mono" [class.text-danger]="item.type === 'expense'" [class.text-success]="item.type === 'income'">
+                      {{ item.type === 'income' ? '+' : '' }}{{ item.amount | number:'1.2-2' }} zł
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+
+      </div>
     }
 
-    <!-- SECTION: FORMULARZE -->
-    @if (currentTab() === 'all' || currentTab() === 'forms') {
-      <section class="forms-dual-grid">
-        <!-- FORM 1: SZYBKI WYDATEK I PARAGON Z APARATEM -->
-        <div class="section-card">
-          <div class="section-card__header">
-            <div>
-              <h2 class="section-title">✍️ Formularz: Dodawanie Wydatku / Paragonu</h2>
-              <p class="section-subtitle">Wygodny na telefonie Adrianny i komputerze Rafała.</p>
-            </div>
-            <span class="badge badge-accent">Szybki wpis</span>
-          </div>
-
-          <form class="app-form" (submit)="$event.preventDefault()">
-            <div class="form-row">
-              <div class="form-group flex-2">
-                <label class="form-label required">Tytuł zakupu / Sklep</label>
-                <input type="text" class="form-control" [(ngModel)]="newExpense.title" name="title" placeholder="np. Biedronka, Rossmann, IKEA" />
-              </div>
-              <div class="form-group flex-1">
-                <label class="form-label required">Kwota (PLN)</label>
-                <div class="input-with-affix">
-                  <input type="number" step="0.01" class="form-control font-mono font-bold" [(ngModel)]="newExpense.amount" name="amount" />
-                  <span class="affix">zł</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group flex-1">
-                <label class="form-label required">Kategoria wydatku</label>
-                <select class="form-select" [(ngModel)]="newExpense.category" name="category">
-                  <option value="Spożywcze">🛒 Jedzenie & Zakupy codzienne</option>
-                  <option value="Rachunki">💡 Rachunki, Czynsz & Media</option>
-                  <option value="Dom">🛋️ Dom, Chemia, Remont</option>
-                  <option value="Paliwo">⛽ Samochód & Transport</option>
-                  <option value="Zdrowie">💊 Apteka & Zdrowie</option>
-                  <option value="Rozrywka">🍿 Wyjścia & Przyjemności</option>
-                </select>
-              </div>
-
-              <div class="form-group flex-1">
-                <label class="form-label required">Data zakupu</label>
-                <input type="date" class="form-control" [(ngModel)]="newExpense.date" name="date" />
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group flex-1">
-                <label class="form-label required">Kto zapłacił?</label>
-                <div class="segmented-control">
-                  <button type="button" [class.active]="newExpense.paidBy === 'Adrianna'" (click)="newExpense.paidBy = 'Adrianna'">Adrianna</button>
-                  <button type="button" [class.active]="newExpense.paidBy === 'Rafał'" (click)="newExpense.paidBy = 'Rafał'">Rafał</button>
-                  <button type="button" [class.active]="newExpense.paidBy === 'Wspólne'" (click)="newExpense.paidBy = 'Wspólne'">Wspólne</button>
-                </div>
-              </div>
-
-              <div class="form-group flex-1">
-                <label class="form-label required">Podział kosztu</label>
-                <div class="segmented-control">
-                  <button type="button" [class.active]="newExpense.splitRatio === '50/50'" (click)="newExpense.splitRatio = '50/50'">50 / 50</button>
-                  <button type="button" [class.active]="newExpense.splitRatio === '100% On'" (click)="newExpense.splitRatio = '100% On'">Tylko Rafał</button>
-                  <button type="button" [class.active]="newExpense.splitRatio === '100% Ona'" (click)="newExpense.splitRatio = '100% Ona'">Tylko Ada</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- APARAT I DRAG & DROP DLA TELEFONU -->
-            <div class="form-group">
-              <label class="form-label">Zdjęcie paragonu (z aparatu telefonu lub pliku)</label>
-              
-              <!-- Hidden camera/file input -->
-              <input 
-                type="file" 
-                id="receiptCameraInput" 
-                accept="image/*" 
-                capture="environment" 
-                style="display: none;" 
-                (change)="onReceiptSelected($event)" />
-
-              <div class="dropzone" (click)="cameraTrigger.click()">
-                <input #cameraTrigger type="file" accept="image/*" capture="environment" style="display:none;" (change)="onReceiptSelected($event)" />
-                <div class="dropzone-icon">📸</div>
-                <div class="dropzone-text">
-                  <strong>Dotknij, aby zrobić zdjęcie aparatem w telefonie</strong>
-                  <span>lub przeciągnij plik ze skanem paragonu (AI odczyta pozycje)</span>
-                </div>
-
-                @if (newExpense.receiptAttached) {
-                  <div class="attached-file-pill" (click)="$event.stopPropagation()">
-                    <span>🧾 {{ newExpense.receiptFileName }}</span>
-                    <button type="button" class="pill-remove" (click)="removeReceipt()">✕</button>
-                  </div>
-                }
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Dodatkowe notatki</label>
-              <textarea class="form-control" rows="2" [(ngModel)]="newExpense.notes" name="notes" placeholder="Np. zakupione prezenty, proszek do prania w promocji..."></textarea>
-            </div>
-
-            <div class="form-actions">
-              <button type="button" class="btn btn-outline">Wyczyść</button>
-              <button type="button" class="btn btn-primary">💾 Zapisz wydatek</button>
-            </div>
-          </form>
+    <!-- TAB 3: ADD EXPENSE / NOWY WYDATEK (Zoptymalizowany pod telefon) -->
+    @if (currentTab() === 'add' || currentTab() === 'all') {
+      <div class="screen-view">
+        <div class="section-title-wrap">
+          <h2>✍️ Dodaj Wydatek lub Paragon</h2>
+          <p>Wpisz ręcznie lub zrób zdjęcie paragonu aparatem w telefonie.</p>
         </div>
 
-        <!-- FORM 2: LIMIT BUDŻETOWY & ALERT -->
-        <div class="section-card">
-          <div class="section-card__header">
-            <div>
-              <h2 class="section-title">⚙️ Konfiguracja Limitu i Powiadomień</h2>
-              <p class="section-subtitle">Wspólne ustalanie limitów miesięcznych.</p>
+        <div class="card form-card">
+          <form (submit)="$event.preventDefault()" class="mobile-vertical-form">
+            
+            <!-- CAMERA TRIGGER BUTTON (DUŻY I WYRAŹNY NA TELEFONIE) -->
+            <div class="camera-hero-card" (click)="camInput.click()">
+              <input #camInput type="file" accept="image/*" capture="environment" style="display:none;" (change)="onReceiptSelected($event)" />
+              <div class="cam-icon">📸</div>
+              <div class="cam-texts">
+                <strong>Zrób zdjęcie paragonu aparatem</strong>
+                <span>AI natychmiast odczyta sklep, kwotę i pozycje</span>
+              </div>
+              @if (newExpense.receiptAttached) {
+                <div class="attached-pill" (click)="$event.stopPropagation()">
+                  <span>🧾 {{ newExpense.receiptFileName }}</span>
+                  <button type="button" class="del-pill" (click)="removeReceipt()">✕</button>
+                </div>
+              }
             </div>
-            <span class="badge badge-success">Budżet na żywo</span>
-          </div>
 
-          <form class="app-form" (submit)="$event.preventDefault()">
-            <div class="form-group">
-              <label class="form-label">Kategoria</label>
-              <select class="form-select" [(ngModel)]="budgetLimit.category" name="limitCategory">
-                <option value="Spożywcze">🛒 Spożywcze i supermarket</option>
-                <option value="Rachunki">💡 Rachunki i opłaty domowe</option>
-                <option value="Dom">🛋️ Wyposażenie domu i chemia</option>
+            <!-- AMOUNT FIELD (DUŻE CYFRY) -->
+            <div class="form-field">
+              <label class="field-label required">Kwota zakupu</label>
+              <div class="amount-input-box">
+                <input 
+                  type="number" 
+                  step="0.01" 
+                  class="big-amount-input" 
+                  [(ngModel)]="newExpense.amount" 
+                  name="amount" 
+                  placeholder="0.00" />
+                <span class="currency-tag">PLN</span>
+              </div>
+            </div>
+
+            <!-- STORE / TITLE -->
+            <div class="form-field">
+              <label class="field-label required">Sklep / Tytuł zakupu</label>
+              <input 
+                type="text" 
+                class="mobile-input" 
+                [(ngModel)]="newExpense.title" 
+                name="title" 
+                placeholder="np. Biedronka, Rossmann, IKEA" />
+            </div>
+
+            <!-- CATEGORY -->
+            <div class="form-field">
+              <label class="field-label required">Kategoria</label>
+              <select class="mobile-select full" [(ngModel)]="newExpense.category" name="category">
+                <option value="Spożywcze">🛒 Jedzenie & Zakupy codzienne</option>
+                <option value="Rachunki">💡 Rachunki, Czynsz & Media</option>
+                <option value="Dom">🛋️ Dom, Chemia, Remont</option>
+                <option value="Paliwo">⛽ Samochód & Paliwo</option>
+                <option value="Zdrowie">💊 Apteka & Zdrowie</option>
+                <option value="Rozrywka">🍿 Wyjścia & Przyjemności</option>
               </select>
             </div>
 
-            <div class="form-group">
-              <label class="form-label">Miesięczny limit</label>
-              <div class="input-with-affix">
-                <input type="number" step="50" class="form-control font-mono font-bold" [(ngModel)]="budgetLimit.limitAmount" name="limitAmount" />
-                <span class="affix">zł / mies.</span>
+            <!-- DATE -->
+            <div class="form-field">
+              <label class="field-label required">Data</label>
+              <input type="date" class="mobile-input" [(ngModel)]="newExpense.date" name="date" />
+            </div>
+
+            <!-- WHO PAID (MOBILE SEGMENTS) -->
+            <div class="form-field">
+              <label class="field-label required">Kto płacił?</label>
+              <div class="touch-segments">
+                <button 
+                  type="button" 
+                  class="seg-btn ada" 
+                  [class.active]="newExpense.paidBy === 'Adrianna'" 
+                  (click)="newExpense.paidBy = 'Adrianna'">
+                  Adrianna
+                </button>
+                <button 
+                  type="button" 
+                  class="seg-btn rafal" 
+                  [class.active]="newExpense.paidBy === 'Rafał'" 
+                  (click)="newExpense.paidBy = 'Rafał'">
+                  Rafał
+                </button>
+                <button 
+                  type="button" 
+                  class="seg-btn" 
+                  [class.active]="newExpense.paidBy === 'Wspólne'" 
+                  (click)="newExpense.paidBy = 'Wspólne'">
+                  Wspólne
+                </button>
               </div>
             </div>
 
-            <div class="form-group">
-              <div class="slider-header">
-                <label class="form-label">Ostrzeżenie przy wydaniu:</label>
-                <span class="slider-value font-mono"><strong>{{ budgetLimit.alertThreshold }}%</strong> ({{ (budgetLimit.limitAmount * budgetLimit.alertThreshold / 100) | number:'1.0-0' }} zł)</span>
-              </div>
-              <input type="range" min="50" max="100" step="5" class="form-range" [(ngModel)]="budgetLimit.alertThreshold" name="alertThreshold" />
-            </div>
-
-            <!-- LIVE PREVIEW BOX -->
-            <div class="budget-preview-box">
-              <div class="preview-box-header">
-                <span>Stan kategorii: <strong>{{ budgetLimit.category }}</strong></span>
-                <span class="font-mono">{{ budgetLimit.currentSpent }} zł / {{ budgetLimit.limitAmount }} zł</span>
-              </div>
-              <div class="progress-bar lg">
-                <div 
-                  class="progress-fill" 
-                  [style.width.%]="(budgetLimit.currentSpent / budgetLimit.limitAmount) * 100"
-                  [class.danger-fill]="(budgetLimit.currentSpent / budgetLimit.limitAmount) >= (budgetLimit.alertThreshold / 100)">
-                </div>
-              </div>
-              <p class="preview-hint">
-                @if ((budgetLimit.currentSpent / budgetLimit.limitAmount) >= (budgetLimit.alertThreshold / 100)) {
-                  ⚠️ <strong>Uwaga:</strong> Wydano {{ ((budgetLimit.currentSpent / budgetLimit.limitAmount) * 100) | number:'1.0-0' }}% limitu. Adrianna i Rafał otrzymają alert na telefon!
-                } @else {
-                  ✓ W normie. Pozostało jeszcze {{ budgetLimit.limitAmount - budgetLimit.currentSpent }} zł do osiągnięcia limitu.
-                }
-              </p>
-            </div>
-
-            <div class="form-group checkbox-row">
-              <label class="switch-container">
-                <input type="checkbox" [(ngModel)]="budgetLimit.enableNotifications" name="notify" />
-                <span class="switch-slider"></span>
-              </label>
-              <div class="switch-label">
-                <strong>Powiadomienia Push na smartfon</strong>
-                <span>Powiadom Adriannę i Rafała po przekroczeniu progu</span>
+            <!-- SPLIT -->
+            <div class="form-field">
+              <label class="field-label required">Podział kosztów</label>
+              <div class="touch-segments">
+                <button 
+                  type="button" 
+                  class="seg-btn" 
+                  [class.active]="newExpense.splitRatio === '50/50'" 
+                  (click)="newExpense.splitRatio = '50/50'">
+                  50 / 50
+                </button>
+                <button 
+                  type="button" 
+                  class="seg-btn" 
+                  [class.active]="newExpense.splitRatio === '100% On'" 
+                  (click)="newExpense.splitRatio = '100% On'">
+                  Tylko Rafał
+                </button>
+                <button 
+                  type="button" 
+                  class="seg-btn" 
+                  [class.active]="newExpense.splitRatio === '100% Ona'" 
+                  (click)="newExpense.splitRatio = '100% Ona'">
+                  Tylko Ada
+                </button>
               </div>
             </div>
 
-            <div class="form-actions">
-              <button type="button" class="btn btn-primary btn-block">Zapisz limit</button>
+            <!-- NOTES -->
+            <div class="form-field">
+              <label class="field-label">Notatki (opcjonalnie)</label>
+              <textarea 
+                class="mobile-textarea" 
+                rows="2" 
+                [(ngModel)]="newExpense.notes" 
+                name="notes" 
+                placeholder="Np. chemia w promocji, prezent..."></textarea>
+            </div>
+
+            <!-- SUBMIT BUTTON -->
+            <div class="form-actions-sticky">
+              <button type="button" class="btn btn-primary btn-block btn-lg" (click)="setTab('expenses')">
+                💾 Zapisz wydatek i przelicz budżet
+              </button>
             </div>
           </form>
         </div>
-      </section>
+      </div>
+    }
+
+    <!-- TAB 4: WIFE PICKER / WYBÓR DLA ADRIANNY -->
+    @if (currentTab() === 'wife-picker' || currentTab() === 'all') {
+      <div class="screen-view">
+        <div class="section-title-wrap">
+          <h2>✨ Strefa Wyboru dla Adrianny</h2>
+          <p>Wybierz styl, który najbardziej cieszy Twoje oko na telefonie!</p>
+        </div>
+
+        <div class="theme-cards-stack">
+          <!-- CARD 1: SAGE -->
+          <div 
+            class="choice-card" 
+            [class.active]="palette() === 'sage'"
+            (click)="setPalette('sage')">
+            <div class="choice-swatches">
+              <span class="swatch" style="background: #2d5a43;"></span>
+              <span class="swatch" style="background: #eaf3ed;"></span>
+              <span class="swatch" style="background: #d97736;"></span>
+            </div>
+            <h3>🌿 1. Szałwia & Ciepły Len (Nordic Cozy)</h3>
+            <p>Spokojna, domowa, naturalna kolorystyka. Kojarzy się ze skandynawskim wnętrzem, ciepłą herbatą i relaksem. Najbardziej przyjazny dla oczu.</p>
+            <div class="choice-tag">Polecany do domu</div>
+            <button class="btn btn-block" [class.btn-primary]="palette() === 'sage'" [class.btn-outline]="palette() !== 'sage'">
+              {{ palette() === 'sage' ? '✓ Wybrany w tej chwili' : 'Wybierz ten motyw' }}
+            </button>
+          </div>
+
+          <!-- CARD 2: EMERALD -->
+          <div 
+            class="choice-card" 
+            [class.active]="palette() === 'emerald'"
+            (click)="setPalette('emerald')">
+            <div class="choice-swatches">
+              <span class="swatch" style="background: #059669;"></span>
+              <span class="swatch" style="background: #ecfdf5;"></span>
+              <span class="swatch" style="background: #6366f1;"></span>
+            </div>
+            <h3>💎 2. Szmaragdowy Fintech (Modern Tech)</h3>
+            <p>Wyrazisty, dynamiczny, jak w nowoczesnych aplikacjach bankowych (Revolut). Czyste biele i soczysta zieleń.</p>
+            <div class="choice-tag">Świeży & Nowoczesny</div>
+            <button class="btn btn-block" [class.btn-primary]="palette() === 'emerald'" [class.btn-outline]="palette() !== 'emerald'">
+              {{ palette() === 'emerald' ? '✓ Wybrany w tej chwili' : 'Wybierz ten motyw' }}
+            </button>
+          </div>
+
+          <!-- CARD 3: INDIGO -->
+          <div 
+            class="choice-card" 
+            [class.active]="palette() === 'indigo'"
+            (click)="setPalette('indigo')">
+            <div class="choice-swatches">
+              <span class="swatch" style="background: #4f46e5;"></span>
+              <span class="swatch" style="background: #eef2ff;"></span>
+              <span class="swatch" style="background: #06b6d4;"></span>
+            </div>
+            <h3>💼 3. Granat & Błękit (Pro Minimal)</h3>
+            <p>Ponadczasowy, minimalistyczny i stonowany. Chłodne odcienie błękitu i granatu.</p>
+            <div class="choice-tag">Klasyka & Minimalizm</div>
+            <button class="btn btn-block" [class.btn-primary]="palette() === 'indigo'" [class.btn-outline]="palette() !== 'indigo'">
+              {{ palette() === 'indigo' ? '✓ Wybrany w tej chwili' : 'Wybierz ten motyw' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- DAY / NIGHT TOGGLE BOX -->
+        <div class="card toggle-mode-card">
+          <div class="t-mode-texts">
+            <strong>Tryb dzień / noc</strong>
+            <span>Aktualnie: {{ theme() === 'light' ? 'Jasny ☀️' : 'Ciemny 🌙' }}</span>
+          </div>
+          <button type="button" class="btn btn-outline" (click)="toggleTheme()">
+            Przełącz na {{ theme() === 'light' ? 'Ciemny 🌙' : 'Jasny ☀️' }}
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- TAB 5: LIMITS / LIMITY -->
+    @if (currentTab() === 'limits' || currentTab() === 'all') {
+      <div class="screen-view">
+        <div class="section-title-wrap">
+          <h2>⚙️ Limity Budżetu i Alerty</h2>
+          <p>Ustalcie wspólne progi wydatków dla domu.</p>
+        </div>
+
+        <div class="card form-card">
+          <div class="form-field">
+            <label class="field-label">Kategoria</label>
+            <select class="mobile-select full" [(ngModel)]="budgetLimit.category" name="catLimit">
+              <option value="Spożywcze">🛒 Spożywcze i supermarket</option>
+              <option value="Rachunki">💡 Rachunki i opłaty domowe</option>
+              <option value="Dom">🛋️ Dom i chemia</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label class="field-label">Miesięczny planowany limit</label>
+            <div class="amount-input-box">
+              <input type="number" step="50" class="big-amount-input" [(ngModel)]="budgetLimit.limitAmount" name="limitAmt" />
+              <span class="currency-tag">zł</span>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <div class="slider-labels">
+              <label class="field-label">Ostrzeżenie przy wydaniu:</label>
+              <strong class="font-mono text-accent">{{ budgetLimit.alertThreshold }}% ({{ (budgetLimit.limitAmount * budgetLimit.alertThreshold / 100) | number:'1.0-0' }} zł)</strong>
+            </div>
+            <input type="range" min="50" max="100" step="5" class="mobile-slider" [(ngModel)]="budgetLimit.alertThreshold" name="threshold" />
+          </div>
+
+          <!-- PREVIEW BOX -->
+          <div class="limit-status-preview">
+            <div class="preview-header">
+              <span>Stan: {{ budgetLimit.category }}</span>
+              <span class="font-mono">{{ budgetLimit.currentSpent }} zł / {{ budgetLimit.limitAmount }} zł</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div 
+                class="progress-bar-fill" 
+                [style.width.%]="(budgetLimit.currentSpent / budgetLimit.limitAmount) * 100"
+                [class.danger]="(budgetLimit.currentSpent / budgetLimit.limitAmount) >= (budgetLimit.alertThreshold / 100)">
+              </div>
+            </div>
+            <p class="preview-msg">
+              @if ((budgetLimit.currentSpent / budgetLimit.limitAmount) >= (budgetLimit.alertThreshold / 100)) {
+                ⚠️ <strong>Ostrzeżenie:</strong> Wykorzystano {{ ((budgetLimit.currentSpent / budgetLimit.limitAmount) * 100) | number:'1.0-0' }}% limitu. Ada i Rafał dostaną alert na telefon!
+              } @else {
+                ✓ W normie. Pozostało jeszcze {{ budgetLimit.limitAmount - budgetLimit.currentSpent }} zł do limitu.
+              }
+            </p>
+          </div>
+
+          <div class="switch-row">
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="budgetLimit.enableNotifications" name="notif" />
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="switch-desc">
+              <strong>Powiadomienia Push na smartfon</strong>
+              <span>Wyślij SMS / Push do Adrianny i Rafała</span>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-primary btn-block btn-lg" (click)="setTab('home')">
+            Zapisz regułę
+          </button>
+        </div>
+      </div>
     }
 
   </main>
 
-  <!-- MOBILE BOTTOM NAVIGATION (Widoczny wyłącznie na telefonie) -->
-  <nav class="mobile-bottom-nav">
-    <button class="bottom-nav-btn" [class.active]="currentTab() === 'all'" (click)="setTab('all')">
-      <span class="nav-icon">📊</span>
-      <span>Pulpit</span>
+  <!-- NATIVE-FEEL MOBILE BOTTOM NAVIGATION -->
+  <nav class="mobile-nav-bar">
+    <button class="nav-tab-btn" [class.active]="currentTab() === 'home'" (click)="setTab('home')">
+      <span class="tab-icon">🏠</span>
+      <span class="tab-text">Pulpit</span>
     </button>
-    <button class="bottom-nav-btn" [class.active]="currentTab() === 'table'" (click)="setTab('table')">
-      <span class="nav-icon">💳</span>
-      <span>Wydatki</span>
+    <button class="nav-tab-btn" [class.active]="currentTab() === 'expenses'" (click)="setTab('expenses')">
+      <span class="tab-icon">💳</span>
+      <span class="tab-text">Wydatki</span>
     </button>
-    <button class="bottom-nav-btn fab-btn" (click)="setTab('forms')">
-      <span class="fab-icon">+</span>
-      <span>Dodaj</span>
+    <button class="nav-tab-btn center-fab" (click)="setTab('add')">
+      <div class="fab-circle">+</div>
+      <span class="tab-text">Dodaj</span>
     </button>
-    <button class="bottom-nav-btn" [class.active]="currentTab() === 'wife-picker'" (click)="setTab('wife-picker')">
-      <span class="nav-icon">✨</span>
-      <span>Dla Ady</span>
+    <button class="nav-tab-btn" [class.active]="currentTab() === 'wife-picker'" (click)="setTab('wife-picker')">
+      <span class="tab-icon">✨</span>
+      <span class="tab-text">Styl Ady</span>
     </button>
-    <button class="bottom-nav-btn" (click)="toggleTheme()">
-      <span class="nav-icon">{{ theme() === 'light' ? '🌙' : '☀️' }}</span>
-      <span>{{ theme() === 'light' ? 'Ciemny' : 'Jasny' }}</span>
+    <button class="nav-tab-btn" [class.active]="currentTab() === 'limits'" (click)="setTab('limits')">
+      <span class="tab-icon">⚙️</span>
+      <span class="tab-text">Limity</span>
     </button>
   </nav>
 

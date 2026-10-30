@@ -33,13 +33,13 @@ export class App {
   localIp = '192.168.1.3';
   localUrl = 'http://192.168.1.3:4200';
   copiedUrl = signal<boolean>(false);
+  showNetworkBar = signal<boolean>(false); // Collapsed by default on mobile for clean UI
 
-  // Active view tab
-  currentTab = signal<'all' | 'table' | 'forms' | 'wife-picker'>('all');
+  // Active view tab: on mobile it shows one clean screen at a time
+  currentTab = signal<'home' | 'expenses' | 'add' | 'wife-picker' | 'limits' | 'all'>('home');
 
   // Mobile layout state
-  mobileCardView = signal<boolean>(true);
-  showAddExpenseModal = signal<boolean>(false);
+  desktopTableView = signal<boolean>(false); // false = cards on mobile, true = wide table
 
   // Filters for table
   searchQuery = signal<string>('');
@@ -222,6 +222,11 @@ export class App {
     });
   });
 
+  // Recent 3 transactions for home screen
+  recentTransactions = computed(() => {
+    return this.transactions().slice(0, 3);
+  });
+
   // Totals
   totalSpent = computed(() => {
     return this.filteredTransactions()
@@ -248,7 +253,7 @@ export class App {
     this.density.set(d);
   }
 
-  setTab(tab: 'all' | 'table' | 'forms' | 'wife-picker') {
+  setTab(tab: 'home' | 'expenses' | 'add' | 'wife-picker' | 'limits' | 'all') {
     this.currentTab.set(tab);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
