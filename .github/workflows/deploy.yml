@@ -1,0 +1,78 @@
+name: Deploy Frontend to Oracle VM
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies and build Angular
+        run: |
+          npm ci
+          npx ng build --configuration production
+
+      - name: Package dist and Docker files (.tar.gz)
+        run: |
+          mkdir -p /tmp/frontend-pkg/dist
+          if [ -d dist/*/browser ]; then
+            cp -r dist/*/browser/. /tmp/frontend-pkg/dist/
+          else
+            cp -r dist/*/. /tmp/frontend-pkg/dist/
+          fi
+          cp Dockerfile docker-compose.yml nginx.conf /tmp/frontend-pkg/
+          tar -czf /tmp/perfecthousehold-frontend.tar.gz -C /tmp/frontend-pkg .
+
+      - name: Configure SSH for Oracle VM
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.ORACLESSHKEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/oracle_vm
+          chmod 600 ~/.ssh/oracle_vm
+
+      - name: Copy archive to Oracle VM
+        env:
+          ORACLE_HOST: ${{ secrets.ORACLEHOST }}
+          ORACLE_USER: ${{ secrets.ORACLEUSER }}
+          ORACLE_PORT: ${{ secrets.ORACLEPORT || '22' }}
+        run: |
+          scp -i ~/.ssh/oracle_vm -P "$ORACLE_PORT" -o StrictHostKeyChecking=accept-new \
+            /tmp/perfecthousehold-frontend.tar.gz \
+            "${ORACLE_USER}@${ORACLE_HOST}:/tmp/perfecthousehold-frontend.tar.gz"
+
+      - name: Unpack and build on Oracle VM
+        env:
+          ORACLE_HOST: ${{ secrets.ORACLEHOST }}
+          ORACLE_USER: ${{ secrets.ORACLEUSER }}
+          ORACLE_PORT: ${{ secrets.ORACLEPORT || '22' }}
+          DEPLOY_PATH: ${{ secrets.ORACLEDEPLOYPATH }}
+        run: |
+          ssh -i ~/.ssh/oracle_vm -p "$ORACLE_PORT" -o StrictHostKeyChecking=accept-new \
+            "${ORACLE_USER}@${ORACLE_HOST}" << EOF
+            set -e
+            mkdir -p "${DEPLOY_PATH}"
+            tar -xzf /tmp/perfecthousehold-frontend.tar.gz -C "${DEPLOY_PATH}"
+            rm -f /tmp/perfecthousehold-frontend.tar.gz
+            cd "${DEPLOY_PATH}"
+            docker compose up -d --build --remove-orphans
+            docker image prune -f
+          EOF
+
+      - name: Cleanup
+        if: always()
+        run: rm -rf ~/.ssh/oracle_vm /tmp/perfecthousehold-frontend.tar.gz /tmp/frontend-pkg

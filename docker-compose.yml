@@ -1,0 +1,16 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: perfecthousehold-frontend
+    restart: unless-stopped
+    networks:
+      - npm-network
+      - perfecthousehold-internal-net
+
+networks:
+  npm-network:
+    external: true
+  perfecthousehold-internal-net:
+    external: true

@@ -1,59 +1,43 @@
-# PerfectHouseholdFrontend
+# Perfect Household — Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.2.4.
+Web client for the **Perfect Household** application, built with **Angular 22** and **TypeScript**.
 
-## Development server
+## About This Repository
 
-To start a local development server, run:
+This repository is part of an end-to-end full-stack project:
 
-```bash
-ng serve
-```
+* **Backend (`perfectHousehold-backend`)** — designed and implemented manually (Java 21, Spring Boot, MyBatis, PostgreSQL, Flyway, JWT & biometric auth).
+* **Frontend (`perfectHousehold-frontend`)** — **primarily created and maintained with an AI coding agent** to rapidly deliver a complete, usable end-to-end application on top of the backend API.
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Instead of spending time hand-crafting every UI view from scratch, the goal here is to focus engineering effort on backend architecture, security, and infrastructure while leveraging AI-assisted development for the client layer.
 
-## Code scaffolding
+## Tech Stack
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+* **Framework:** Angular 22 (`@angular/build:application`)
+* **Styling:** SCSS
+* **Testing:** Vitest (`ng test`)
+* **Runtime / Deployment:** Docker (`nginx:alpine`) + Nginx reverse proxy for `/api/` -> `perfecthousehold-backend:8080`
+* **CI/CD:** GitHub Actions (`.github/workflows/deploy.yml`) deploying production builds to an Oracle Cloud VM
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+## Local Development
 
 ```bash
-ng build
+npm install
+npm start
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+The dev server starts on `http://localhost:4200/` (bound to `0.0.0.0`).
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+### Useful Commands
 
 ```bash
-ng test
+# Production build (outputs to dist/)
+npm run build
+
+# Unit tests (Vitest)
+npm test
 ```
 
-## Running end-to-end tests
+## Deployment (Docker & Oracle VM)
 
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Production builds are compiled in GitHub Actions and packaged into a `.tar.gz` archive containing `dist/`, `Dockerfile`, `docker-compose.yml`, and `nginx.conf`. On the Oracle VM, Nginx serves the Angular SPA and proxies `/api/` requests over the internal Docker network (`perfecthousehold-internal-net`) to the backend container.
