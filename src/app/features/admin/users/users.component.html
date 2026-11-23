@@ -1,0 +1,157 @@
+<div class="screen-view">
+  
+  <div class="section-title-wrap flex-between">
+    <div>
+      <h2>👥 Zarządzanie Domownikami (Panel Admina)</h2>
+      <p>Lista zarejestrowanych użytkowników w systemie oraz dodawanie nowych członków gospodarstwa.</p>
+    </div>
+    <button class="btn btn-primary" (click)="openAddModal()">
+      <span>➕</span> Dodaj nowego domownika
+    </button>
+  </div>
+
+  <!-- SUCCESS ALERT -->
+  @if (successMessage()) {
+    <div class="alert-box success">
+      <span>✓ {{ successMessage() }}</span>
+      <button class="alert-close" (click)="successMessage.set(null)">✕</button>
+    </div>
+  }
+
+  <!-- ERROR ALERT -->
+  @if (errorMessage()) {
+    <div class="alert-box error">
+      <span>⚠️ {{ errorMessage() }}</span>
+      <button class="alert-close" (click)="errorMessage.set(null)">✕</button>
+    </div>
+  }
+
+  <!-- USERS LIST / TABLE -->
+  <div class="card">
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width: 60px;">ID</th>
+            <th>Użytkownik</th>
+            <th>Email</th>
+            <th>Rola w systemie</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of users(); track user.id) {
+            <tr>
+              <td class="font-mono text-muted">#{{ user.id }}</td>
+              <td>
+                <div class="user-row-name">
+                  <div class="user-avatar-circle" [class.admin]="user.role === 'ROLE_ADMIN'">
+                    {{ user.username.substring(0, 1).toUpperCase() }}
+                  </div>
+                  <div>
+                    <strong>{{ user.username }}</strong>
+                  </div>
+                </div>
+              </td>
+              <td>{{ user.email }}</td>
+              <td>
+                <span class="role-badge" [class.badge-admin]="user.role === 'ROLE_ADMIN'" [class.badge-user]="user.role !== 'ROLE_ADMIN'">
+                  {{ user.role === 'ROLE_ADMIN' ? '👑 Administrator' : '👤 Domownik' }}
+                </span>
+              </td>
+              <td>
+                <span class="status-indicator" [class.active]="user.enabled">
+                  <span class="dot"></span>
+                  {{ user.enabled ? 'Aktywny' : 'Zablokowany' }}
+                </span>
+              </td>
+            </tr>
+          } @empty {
+            @if (!isLoading()) {
+              <tr>
+                <td colspan="5" class="empty-state">Brak zarejestrowanych użytkowników.</td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (isLoading()) {
+      <div class="loading-state">
+        <span class="spinner"></span> Pobieranie listy użytkowników...
+      </div>
+    }
+  </div>
+
+  <!-- MODAL: ADD NEW USER -->
+  @if (showAddUserModal()) {
+    <div class="modal-backdrop" (click)="closeAddModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        
+        <div class="modal-header">
+          <h3>➕ Nowy Domownik / Użytkownik</h3>
+          <button class="modal-close" (click)="closeAddModal()">✕</button>
+        </div>
+
+        <form (ngSubmit)="onSaveUser()" class="modal-form">
+          
+          <div class="form-group">
+            <label class="form-label required">Login (nazwa użytkownika)</label>
+            <input 
+              type="text" 
+              class="form-control" 
+              [(ngModel)]="newUser.username" 
+              name="newUsername" 
+              placeholder="np. adrianna, rafal" 
+              required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label required">Adres E-mail</label>
+            <input 
+              type="email" 
+              class="form-control" 
+              [(ngModel)]="newUser.email" 
+              name="newEmail" 
+              placeholder="np. ada@dom.pl" 
+              required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label required">Hasło startowe</label>
+            <input 
+              type="password" 
+              class="form-control" 
+              [(ngModel)]="newUser.password" 
+              name="newPassword" 
+              placeholder="••••••••" 
+              required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label required">Rola w systemie</label>
+            <select class="form-select" [(ngModel)]="newUser.role" name="newRole">
+              <option value="ROLE_USER">👤 Zwykły Domownik (ROLE_USER)</option>
+              <option value="ROLE_ADMIN">👑 Administrator gospodarstwa (ROLE_ADMIN)</option>
+            </select>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-outline" (click)="closeAddModal()">Anuluj</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+              @if (isSubmitting()) {
+                <span class="spinner"></span> Zapisywanie...
+              } @else {
+                💾 Utwórz konto domownika
+              }
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+  }
+
+</div>
