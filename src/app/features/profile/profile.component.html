@@ -1,0 +1,99 @@
+<div class="profile-container">
+  
+  <div class="page-header">
+    <h2>👤 Moje Konto</h2>
+    <p class="page-subtitle">Zarządzanie swoim profilem, hasłem i wyglądem aplikacji.</p>
+  </div>
+
+  <!-- 1. USER DETAILS CARD -->
+  <div class="card user-card">
+    <div class="user-avatar">
+      {{ authService.currentUser()?.username?.substring(0, 1)?.toUpperCase() || '?' }}
+    </div>
+    <div class="user-info">
+      <h3>{{ authService.currentUser()?.username }}</h3>
+      <p class="user-email">{{ authService.currentUser()?.email || 'Brak przypisanego adresu email' }}</p>
+      <div class="badges-row">
+        <span class="badge" [class.badge-admin]="authService.isAdmin()" [class.badge-user]="!authService.isAdmin()">
+          {{ authService.isAdmin() ? '👑 Administrator' : '👤 Domownik' }}
+        </span>
+        <span class="badge badge-active">● Aktywny</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. APP SETTINGS (DARK / LIGHT MODE) -->
+  <div class="card">
+    <h3 class="card-title">⚙️ Ustawienia Wyglądu</h3>
+    
+    <div class="setting-row">
+      <div>
+        <strong>Tryb Wyświetlania</strong>
+        <p class="text-muted text-sm">Aktualnie aktywny: {{ themeService.isDark() ? 'Tryb Ciemny 🌙' : 'Tryb Jasny ☀️' }}</p>
+      </div>
+      <button type="button" class="btn btn-outline" (click)="themeService.toggleTheme()">
+        Przełącz na {{ themeService.isDark() ? 'Jasny ☀️' : 'Ciemny 🌙' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- 3. CHANGE PASSWORD CARD -->
+  <div class="card">
+    <h3 class="card-title">🔒 Zmiana Hasła</h3>
+    <p class="text-muted text-sm mb-4">Wprowadź dotychczasowe hasło oraz nowe hasło do Twojego konta.</p>
+
+    @if (passwordSuccess()) {
+      <div class="alert success">✓ {{ passwordSuccess() }}</div>
+    }
+
+    @if (passwordError()) {
+      <div class="alert error">⚠️ {{ passwordError() }}</div>
+    }
+
+    <form (ngSubmit)="onChangePassword()" class="password-form">
+      <div class="form-group">
+        <label class="form-label required">Aktualne hasło</label>
+        <input 
+          type="password" 
+          class="form-control" 
+          [(ngModel)]="currentPassword" 
+          name="currentPass" 
+          placeholder="Wpisz obecne hasło" 
+          required />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label required">Nowe hasło</label>
+        <input 
+          type="password" 
+          class="form-control" 
+          [(ngModel)]="newPassword" 
+          name="newPass" 
+          placeholder="Wpisz nowe hasło (min. 6 znaków)" 
+          required />
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="isChangingPassword()">
+          @if (isChangingPassword()) {
+            <span class="spinner"></span> Zapisywanie...
+          } @else {
+            Zaktualizuj hasło
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- 4. LOGOUT SECTION -->
+  <div class="card logout-card">
+    <div>
+      <strong>Wylogowanie</strong>
+      <p class="text-muted text-sm">Bezpieczne zakończenie bieżącej sesji w systemie.</p>
+    </div>
+    <button type="button" class="btn btn-danger" (click)="authService.logout()">
+      🚪 Wyloguj się
+    </button>
+  </div>
+
+</div>

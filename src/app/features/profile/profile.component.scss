@@ -1,0 +1,132 @@
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 4px;
+
+  h2 {
+    font-size: 1.375rem;
+    font-weight: 800;
+    color: var(--text-main);
+  }
+
+  .page-subtitle {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md);
+  background-color: var(--primary-light);
+  color: var(--primary);
+  font-size: 1.5rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  h3 {
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: var(--text-main);
+  }
+
+  .user-email {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+
+  .badges-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+  }
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 12px;
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  strong {
+    font-size: 0.875rem;
+  }
+}
+
+.password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.logout-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.text-sm {
+  font-size: 0.8125rem;
+}
+
+.mb-4 {
+  margin-bottom: 16px;
+}
+
+.alert {
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+
+  &.success {
+    background-color: var(--success-light);
+    color: var(--success);
+    border: 1px solid var(--success);
+  }
+
+  &.error {
+    background-color: var(--danger-light);
+    color: var(--danger);
+    border: 1px solid var(--danger-border);
+  }
+}
