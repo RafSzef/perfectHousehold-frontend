@@ -1,15 +1,21 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { UserService } from '../../../core/services/user.service';
+import { parseHttpError } from '../../../core/http/problem-detail';
 import { User } from '../../../core/models/user.model';
+import { UserService } from '../../../core/services/user.service';
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './users.component.html',
   styleUrl: './users.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(document:keydown.escape)': 'onEscapeKey()',
+  },
 })
 export class UsersComponent implements OnInit {
   private readonly userService = inject(UserService);
@@ -22,6 +28,8 @@ export class UsersComponent implements OnInit {
   // Modal / Form state for creating a user
   showAddUserModal = signal<boolean>(false);
   isSubmitting = signal<boolean>(false);
+  modalErrorMessage = signal<string | null>(null);
+  modalFieldErrors = signal<Record<string, string>>({});
 
   newUser: Partial<User> = {
     username: '',
@@ -44,13 +52,15 @@ export class UsersComponent implements OnInit {
         this.users.set(list);
         this.isLoading.set(false);
       },
-      error: (err) => {
+      error: (err: unknown) => {
         this.isLoading.set(false);
-        this.errorMessage.set(
-          err.status === 403
-            ? 'Brak uprawnień. Tylko użytkownicy z rolą ROLE_ADMIN mogą przeglądać listę użytkowników.'
-            : 'Nie udało się pobrać listy użytkowników z backendu.'
-        );
+        const parsed = parseHttpError(err, {
+          fallbackMessage: 'Nie udało się pobrać listy użytkowników.',
+          statusMessages: {
+            403: 'Brak uprawnień. Tylko użytkownicy z rolą ROLE_ADMIN mogą przeglądać listę użytkowników.',
+          },
+        });
+        this.errorMessage.set(parsed.message);
       },
     });
   }
@@ -63,37 +73,82 @@ export class UsersComponent implements OnInit {
       role: 'ROLE_USER',
       enabled: true,
     };
-    this.errorMessage.set(null);
+    this.modalErrorMessage.set(null);
+    this.modalFieldErrors.set({});
     this.successMessage.set(null);
     this.showAddUserModal.set(true);
   }
 
   closeAddModal(): void {
+    if (this.isSubmitting()) {
+      return;
+    }
     this.showAddUserModal.set(false);
+    this.modalErrorMessage.set(null);
+    this.modalFieldErrors.set({});
+  }
+
+  onEscapeKey(): void {
+    if (this.showAddUserModal()) {
+      this.closeAddModal();
+    }
   }
 
   onSaveUser(): void {
-    if (!this.newUser.username || !this.newUser.email || !this.newUser.password) {
-      this.errorMessage.set('Wypełnij wszystkie wymagane pola (login, email, hasło).');
+    const username = (this.newUser.username ?? '').trim();
+    const email = (this.newUser.email ?? '').trim();
+    const password = this.newUser.password ?? '';
+
+    const fieldErrors: Record<string, string> = {};
+    if (!username) {
+      fieldErrors['username'] = 'Login nie może być pusty.';
+    }
+    if (!email) {
+      fieldErrors['email'] = 'Adres e-mail nie może być pusty.';
+    } else if (!EMAIL_PATTERN.test(email)) {
+      fieldErrors['email'] = 'Podaj poprawny adres e-mail.';
+    }
+    if (!password.trim()) {
+      fieldErrors['passwordHash'] = 'Hasło nie może być puste.';
+    }
+
+    if (Object.keys(fieldErrors).length > 0) {
+      this.modalFieldErrors.set(fieldErrors);
+      this.modalErrorMessage.set('Popraw zaznaczone pola formularza.');
       return;
     }
 
+    this.newUser.username = username;
+    this.newUser.email = email;
     this.isSubmitting.set(true);
-    this.errorMessage.set(null);
+    this.modalErrorMessage.set(null);
+    this.modalFieldErrors.set({});
 
-    this.userService.registerUser(this.newUser).subscribe({
-      next: (created) => {
-        this.isSubmitting.set(false);
-        this.showAddUserModal.set(false);
-        this.successMessage.set(`Użytkownik "${created.username}" został pomyślnie utworzony!`);
-        this.loadUsers();
-      },
-      error: (err) => {
-        this.isSubmitting.set(false);
-        this.errorMessage.set(
-          err.error?.message || 'Błąd podczas tworzenia użytkownika. Być może login lub email jest już zajęty.'
-        );
-      },
-    });
+    this.userService
+      .registerUser({
+        ...this.newUser,
+        username,
+        email,
+        password,
+      })
+      .subscribe({
+        next: (created) => {
+          this.isSubmitting.set(false);
+          this.showAddUserModal.set(false);
+          this.successMessage.set(`Użytkownik "${created.username}" został pomyślnie utworzony!`);
+          this.loadUsers();
+        },
+        error: (err: unknown) => {
+          this.isSubmitting.set(false);
+          const parsed = parseHttpError(err, {
+            fallbackMessage: 'Nie udało się utworzyć użytkownika.',
+            statusMessages: {
+              403: 'Brak uprawnień do utworzenia nowego użytkownika.',
+            },
+          });
+          this.modalFieldErrors.set(parsed.fieldErrors);
+          this.modalErrorMessage.set(parsed.message);
+        },
+      });
   }
 }

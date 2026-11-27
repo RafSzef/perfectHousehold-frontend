@@ -1,28 +1,43 @@
 <div class="screen-view">
-  
   <div class="section-title-wrap flex-between">
     <div>
       <h2>👥 Zarządzanie Domownikami (Panel Admina)</h2>
-      <p>Lista zarejestrowanych użytkowników w systemie oraz dodawanie nowych członków gospodarstwa.</p>
+      <p>
+        Lista zarejestrowanych użytkowników w systemie oraz dodawanie nowych członków gospodarstwa.
+      </p>
     </div>
-    <button class="btn btn-primary" (click)="openAddModal()">
-      <span>➕</span> Dodaj nowego domownika
+    <button type="button" class="btn btn-primary" (click)="openAddModal()">
+      <span aria-hidden="true">➕</span> Dodaj nowego domownika
     </button>
   </div>
 
   <!-- SUCCESS ALERT -->
   @if (successMessage()) {
-    <div class="alert-box success">
+    <div class="alert-box success" role="status">
       <span>✓ {{ successMessage() }}</span>
-      <button class="alert-close" (click)="successMessage.set(null)">✕</button>
+      <button
+        type="button"
+        class="alert-close"
+        (click)="successMessage.set(null)"
+        aria-label="Zamknij komunikat"
+      >
+        ✕
+      </button>
     </div>
   }
 
   <!-- ERROR ALERT -->
   @if (errorMessage()) {
-    <div class="alert-box error">
+    <div class="alert-box error" role="alert">
       <span>⚠️ {{ errorMessage() }}</span>
-      <button class="alert-close" (click)="errorMessage.set(null)">✕</button>
+      <button
+        type="button"
+        class="alert-close"
+        (click)="errorMessage.set(null)"
+        aria-label="Zamknij komunikat błędu"
+      >
+        ✕
+      </button>
     </div>
   }
 
@@ -32,7 +47,7 @@
       <table class="data-table">
         <thead>
           <tr>
-            <th style="width: 60px;">ID</th>
+            <th style="width: 60px">ID</th>
             <th>Użytkownik</th>
             <th>Email</th>
             <th>Rola w systemie</th>
@@ -55,7 +70,11 @@
               </td>
               <td>{{ user.email }}</td>
               <td>
-                <span class="role-badge" [class.badge-admin]="user.role === 'ROLE_ADMIN'" [class.badge-user]="user.role !== 'ROLE_ADMIN'">
+                <span
+                  class="role-badge"
+                  [class.badge-admin]="user.role === 'ROLE_ADMIN'"
+                  [class.badge-user]="user.role !== 'ROLE_ADMIN'"
+                >
                   {{ user.role === 'ROLE_ADMIN' ? '👑 Administrator' : '👤 Domownik' }}
                 </span>
               </td>
@@ -87,58 +106,127 @@
   <!-- MODAL: ADD NEW USER -->
   @if (showAddUserModal()) {
     <div class="modal-backdrop" (click)="closeAddModal()">
-      <div class="modal-card" (click)="$event.stopPropagation()">
-        
+      <div
+        class="modal-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-user-modal-title"
+        (click)="$event.stopPropagation()"
+      >
         <div class="modal-header">
-          <h3>➕ Nowy Domownik / Użytkownik</h3>
-          <button class="modal-close" (click)="closeAddModal()">✕</button>
+          <h3 id="add-user-modal-title">➕ Nowy Domownik / Użytkownik</h3>
+          <button
+            type="button"
+            class="modal-close"
+            (click)="closeAddModal()"
+            aria-label="Zamknij okno dodawania użytkownika"
+          >
+            ✕
+          </button>
         </div>
 
-        <form (ngSubmit)="onSaveUser()" class="modal-form">
-          
+        @if (modalErrorMessage()) {
+          <div class="alert-box error" role="alert">
+            <span>⚠️ {{ modalErrorMessage() }}</span>
+            <button
+              type="button"
+              class="alert-close"
+              (click)="modalErrorMessage.set(null)"
+              aria-label="Zamknij komunikat błędu"
+            >
+              ✕
+            </button>
+          </div>
+        }
+
+        <form (ngSubmit)="onSaveUser()" class="modal-form" novalidate>
           <div class="form-group">
-            <label class="form-label required">Login (nazwa użytkownika)</label>
-            <input 
-              type="text" 
-              class="form-control" 
-              [(ngModel)]="newUser.username" 
-              name="newUsername" 
-              placeholder="np. adrianna, rafal" 
-              required />
+            <label for="new-user-username" class="form-label required"
+              >Login (nazwa użytkownika)</label
+            >
+            <input
+              type="text"
+              id="new-user-username"
+              class="form-control"
+              [class.is-invalid]="!!modalFieldErrors()['username']"
+              [attr.aria-invalid]="!!modalFieldErrors()['username']"
+              [(ngModel)]="newUser.username"
+              name="newUsername"
+              autocomplete="off"
+              placeholder="np. adrianna, rafal"
+              required
+            />
+            @if (modalFieldErrors()['username']) {
+              <span class="field-error" role="alert">{{ modalFieldErrors()['username'] }}</span>
+            }
           </div>
 
           <div class="form-group">
-            <label class="form-label required">Adres E-mail</label>
-            <input 
-              type="email" 
-              class="form-control" 
-              [(ngModel)]="newUser.email" 
-              name="newEmail" 
-              placeholder="np. ada@dom.pl" 
-              required />
+            <label for="new-user-email" class="form-label required">Adres E-mail</label>
+            <input
+              type="email"
+              id="new-user-email"
+              class="form-control"
+              [class.is-invalid]="!!modalFieldErrors()['email']"
+              [attr.aria-invalid]="!!modalFieldErrors()['email']"
+              [(ngModel)]="newUser.email"
+              name="newEmail"
+              autocomplete="off"
+              placeholder="np. ada@dom.pl"
+              required
+            />
+            @if (modalFieldErrors()['email']) {
+              <span class="field-error" role="alert">{{ modalFieldErrors()['email'] }}</span>
+            }
           </div>
 
           <div class="form-group">
-            <label class="form-label required">Hasło startowe</label>
-            <input 
-              type="password" 
-              class="form-control" 
-              [(ngModel)]="newUser.password" 
-              name="newPassword" 
-              placeholder="••••••••" 
-              required />
+            <label for="new-user-password" class="form-label required">Hasło startowe</label>
+            <input
+              type="password"
+              id="new-user-password"
+              class="form-control"
+              [class.is-invalid]="
+                !!(modalFieldErrors()['passwordHash'] || modalFieldErrors()['password'])
+              "
+              [attr.aria-invalid]="
+                !!(modalFieldErrors()['passwordHash'] || modalFieldErrors()['password'])
+              "
+              [(ngModel)]="newUser.password"
+              name="newPassword"
+              autocomplete="new-password"
+              placeholder="••••••••"
+              required
+            />
+            @if (modalFieldErrors()['passwordHash'] || modalFieldErrors()['password']) {
+              <span class="field-error" role="alert">{{
+                modalFieldErrors()['passwordHash'] || modalFieldErrors()['password']
+              }}</span>
+            }
           </div>
 
           <div class="form-group">
-            <label class="form-label required">Rola w systemie</label>
-            <select class="form-select" [(ngModel)]="newUser.role" name="newRole">
+            <label for="new-user-role" class="form-label required">Rola w systemie</label>
+            <select
+              id="new-user-role"
+              class="form-select"
+              [(ngModel)]="newUser.role"
+              name="newRole"
+            >
               <option value="ROLE_USER">👤 Zwykły Domownik (ROLE_USER)</option>
               <option value="ROLE_ADMIN">👑 Administrator gospodarstwa (ROLE_ADMIN)</option>
             </select>
           </div>
 
           <div class="modal-actions">
-            <button type="button" class="btn btn-outline" (click)="closeAddModal()">Anuluj</button>
+            <button
+              type="button"
+              class="btn btn-outline"
+              (click)="closeAddModal()"
+              [disabled]="isSubmitting()"
+            >
+              Anuluj
+            </button>
             <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
               @if (isSubmitting()) {
                 <span class="spinner"></span> Zapisywanie...
@@ -147,11 +235,8 @@
               }
             </button>
           </div>
-
         </form>
-
       </div>
     </div>
   }
-
 </div>
