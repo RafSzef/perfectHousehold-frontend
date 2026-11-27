@@ -1,8 +1,9 @@
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, catchError, map, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
 import { AuthResponse, LoginRequest, User } from '../models/user.model';
+import { sanitizeReturnUrl } from './return-url';
 
 @Injectable({
   providedIn: 'root',
@@ -49,13 +50,14 @@ export class AuthService {
           throw new Error('Nie udało się pobrać profilu użytkownika.');
         }
         return user;
-      })
+      }),
     );
   }
 
   /**
    * Ensures current user is loaded (used by guards after page refresh).
-   * Returns null if there is no valid session.
+   * Clears the stored session only on 401/403; transient network/5xx failures
+   * preserve the token and reset the cached request so future retries can succeed.
    */
   loadCurrentUser(): Observable<User | null> {
     if (!this.token()) {
@@ -67,12 +69,14 @@ export class AuthService {
     if (!this.userRequest$) {
       this.userRequest$ = this.http.get<User>('/api/auth/me').pipe(
         tap((user) => this.currentUser.set(user)),
-        catchError(() => {
-          // Invalid / expired token -> clear session
-          this.clearSession();
+        catchError((err: unknown) => {
+          this.userRequest$ = null;
+          if (err instanceof HttpErrorResponse && (err.status === 401 || err.status === 403)) {
+            this.clearSession();
+          }
           return of(null);
         }),
-        shareReplay(1)
+        shareReplay(1),
       );
     }
     return this.userRequest$;
@@ -80,6 +84,16 @@ export class AuthService {
 
   logout(): void {
     this.clearSession();
+    this.router.navigate(['/login']);
+  }
+
+  handleUnauthorized(returnUrl?: string): void {
+    this.clearSession();
+    const safeReturnUrl = sanitizeReturnUrl(returnUrl);
+    if (safeReturnUrl && !safeReturnUrl.startsWith('/login')) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl: safeReturnUrl } });
+      return;
+    }
     this.router.navigate(['/login']);
   }
 
