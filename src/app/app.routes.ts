@@ -1,25 +1,25 @@
 import { Routes } from '@angular/router';
-import { authGuard, adminGuard, guestGuard } from './core/auth/auth.guard';
-import { LoginComponent } from './features/auth/login/login.component';
-import { ProfileComponent } from './features/profile/profile.component';
-import { UsersComponent } from './features/admin/users/users.component';
+import { adminGuard, authGuard, guestGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
   {
     path: 'login',
-    component: LoginComponent,
+    loadComponent: () =>
+      import('./features/auth/login/login.component').then((m) => m.LoginComponent),
     canActivate: [guestGuard],
     title: 'Logowanie - perfectHousehold',
   },
   {
     path: 'users',
-    component: UsersComponent,
+    loadComponent: () =>
+      import('./features/admin/users/users.component').then((m) => m.UsersComponent),
     canActivate: [authGuard, adminGuard],
     title: 'Użytkownicy - perfectHousehold',
   },
   {
     path: 'profile',
-    component: ProfileComponent,
+    loadComponent: () =>
+      import('./features/profile/profile.component').then((m) => m.ProfileComponent),
     canActivate: [authGuard],
     title: 'Moje Konto - perfectHousehold',
   },
