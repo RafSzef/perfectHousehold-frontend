@@ -105,10 +105,23 @@ body {
 button {
   font-family: inherit;
   border: none;
-  outline: none;
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
+
+  &:focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
+  }
+}
+
+a:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
 }
 
 .btn {
