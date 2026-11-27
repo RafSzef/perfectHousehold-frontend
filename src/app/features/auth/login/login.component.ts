@@ -1,17 +1,18 @@
-import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../core/auth/auth.service';
+import { sanitizeReturnUrl } from '../../../core/auth/return-url';
+import { parseHttpError } from '../../../core/http/problem-detail';
 import { LoginRequest } from '../../../core/models/user.model';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent {
   private readonly authService = inject(AuthService);
@@ -25,47 +26,54 @@ export class LoginComponent {
 
   showPassword = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
+  fieldErrors = signal<Record<string, string>>({});
   isLoading = signal<boolean>(false);
 
   onSubmit(): void {
-    if (!this.credentials.username || !this.credentials.password) {
+    const username = this.credentials.username.trim();
+    const password = this.credentials.password;
+
+    const validationErrors: Record<string, string> = {};
+    if (!username) {
+      validationErrors['username'] = 'Podaj nazwę użytkownika.';
+    }
+    if (!password.trim()) {
+      validationErrors['password'] = 'Podaj hasło.';
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      this.fieldErrors.set(validationErrors);
       this.errorMessage.set('Podaj nazwę użytkownika oraz hasło.');
       return;
     }
 
+    this.credentials.username = username;
     this.errorMessage.set(null);
+    this.fieldErrors.set({});
     this.isLoading.set(true);
 
-    this.authService.login(this.credentials).subscribe({
+    this.authService.login({ username, password }).subscribe({
       next: () => {
         this.isLoading.set(false);
-        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/profile';
+        const returnUrl = sanitizeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl'));
         this.router.navigateByUrl(returnUrl);
       },
       error: (err: unknown) => {
         this.isLoading.set(false);
-        this.errorMessage.set(this.toMessage(err));
+        const parsed = parseHttpError(err, {
+          fallbackMessage: 'Wystąpił błąd podczas logowania. Spróbuj ponownie.',
+          statusMessages: {
+            401: 'Niepoprawny login lub hasło.',
+            403: 'Niepoprawny login lub hasło.',
+          },
+        });
+        this.fieldErrors.set(parsed.fieldErrors);
+        this.errorMessage.set(parsed.message);
       },
     });
   }
 
   toggleShowPassword(): void {
     this.showPassword.update((v) => !v);
-  }
-
-  fillAdminCredentials(): void {
-    this.credentials.username = 'admin';
-    this.credentials.password = 'admin123';
-  }
-
-  private toMessage(err: unknown): string {
-    if (err instanceof HttpErrorResponse) {
-      if (err.status === 401 || err.status === 403) return 'Niepoprawny login lub hasło.';
-      if (err.status === 0 || err.status === 502 || err.status === 504) {
-        return 'Brak połączenia z backendem (localhost:8081). Czy jest uruchomiony?';
-      }
-      return err.error?.message || `Błąd serwera (${err.status}).`;
-    }
-    return err instanceof Error ? err.message : 'Wystąpił nieoczekiwany błąd.';
   }
 }
