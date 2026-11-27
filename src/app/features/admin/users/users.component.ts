@@ -1,4 +1,14 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  OnInit,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { parseHttpError } from '../../../core/http/problem-detail';
 import { User } from '../../../core/models/user.model';
@@ -19,6 +29,10 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 })
 export class UsersComponent implements OnInit {
   private readonly userService = inject(UserService);
+  private readonly document = inject(DOCUMENT);
+  private readonly newUserUsernameInput =
+    viewChild<ElementRef<HTMLInputElement>>('newUserUsernameInput');
+  private previouslyFocusedElement: HTMLElement | null = null;
 
   users = signal<User[]>([]);
   isLoading = signal<boolean>(false);
@@ -38,6 +52,14 @@ export class UsersComponent implements OnInit {
     role: 'ROLE_USER',
     enabled: true,
   };
+
+  constructor() {
+    effect(() => {
+      if (this.showAddUserModal()) {
+        queueMicrotask(() => this.newUserUsernameInput()?.nativeElement.focus());
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.loadUsers();
@@ -66,6 +88,8 @@ export class UsersComponent implements OnInit {
   }
 
   openAddModal(): void {
+    this.previouslyFocusedElement =
+      this.document.activeElement instanceof HTMLElement ? this.document.activeElement : null;
     this.newUser = {
       username: '',
       email: '',
@@ -86,6 +110,7 @@ export class UsersComponent implements OnInit {
     this.showAddUserModal.set(false);
     this.modalErrorMessage.set(null);
     this.modalFieldErrors.set({});
+    this.restoreFocus();
   }
 
   onEscapeKey(): void {
@@ -136,6 +161,7 @@ export class UsersComponent implements OnInit {
           this.isSubmitting.set(false);
           this.showAddUserModal.set(false);
           this.successMessage.set(`Użytkownik "${created.username}" został pomyślnie utworzony!`);
+          this.restoreFocus();
           this.loadUsers();
         },
         error: (err: unknown) => {
@@ -150,5 +176,13 @@ export class UsersComponent implements OnInit {
           this.modalErrorMessage.set(parsed.message);
         },
       });
+  }
+
+  private restoreFocus(): void {
+    const element = this.previouslyFocusedElement;
+    this.previouslyFocusedElement = null;
+    if (element && element.isConnected) {
+      queueMicrotask(() => element.focus());
+    }
   }
 }

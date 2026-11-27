@@ -21,6 +21,19 @@ describe('UsersComponent', () => {
     return { fixture, component: fixture.componentInstance, userService };
   }
 
+  it('moves focus to username input when add-user modal opens', async () => {
+    const { fixture, component } = setup();
+
+    component.openAddModal();
+    fixture.detectChanges();
+    await Promise.resolve();
+
+    const usernameInput = (fixture.nativeElement as HTMLElement).querySelector(
+      '#new-user-username',
+    );
+    expect(document.activeElement).toBe(usernameInput);
+  });
+
   it('validates blank fields and email format inside modal without calling backend', () => {
     const { fixture, component, userService } = setup();
     component.openAddModal();

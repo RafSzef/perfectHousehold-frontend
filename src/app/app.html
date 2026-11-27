@@ -1,49 +1,56 @@
 <div class="app-layout">
-  
   @if (authService.isAuthenticated()) {
     <header class="app-navbar">
       <div class="navbar-container">
-        
         <div class="navbar-left">
-          <div class="brand-logo" routerLink="/profile">
-            <span class="logo-emoji">🌿</span>
+          <a
+            class="brand-logo"
+            routerLink="/profile"
+            aria-label="perfectHousehold - przejdź do mojego konta"
+          >
+            <span class="logo-emoji" aria-hidden="true">🌿</span>
             <span class="logo-text">perfectHousehold</span>
-          </div>
+          </a>
 
-          <nav class="nav-links">
+          <nav class="nav-links" aria-label="Nawigacja główna">
             @if (authService.isAdmin()) {
               <a routerLink="/users" routerLinkActive="active" class="nav-item">
-                👥 Użytkownicy
+                <span aria-hidden="true">👥</span> Użytkownicy
               </a>
             }
             <a routerLink="/profile" routerLinkActive="active" class="nav-item">
-              👤 Moje Konto
+              <span aria-hidden="true">👤</span> Moje Konto
             </a>
           </nav>
         </div>
 
         <div class="navbar-right">
           <!-- Quick day/night switch -->
-          <button 
-            type="button" 
-            class="theme-toggle-btn" 
-            (click)="themeService.toggleTheme()" 
-            title="Przełącz tryb dzień/noc">
-            {{ themeService.isDark() ? '🌙' : '☀️' }}
+          <button
+            type="button"
+            class="theme-toggle-btn"
+            (click)="themeService.toggleTheme()"
+            [attr.aria-label]="
+              themeService.isDark() ? 'Przełącz na tryb jasny' : 'Przełącz na tryb ciemny'
+            "
+            title="Przełącz tryb dzień/noc"
+          >
+            <span aria-hidden="true">{{ themeService.isDark() ? '🌙' : '☀️' }}</span>
           </button>
 
           <!-- User pill -->
-          <div class="user-pill" routerLink="/profile">
-            <span class="pill-avatar">{{ authService.currentUser()?.username?.substring(0, 1)?.toUpperCase() }}</span>
+          <a class="user-pill" routerLink="/profile" aria-label="Moje konto">
+            <span class="pill-avatar" aria-hidden="true">{{
+              authService.currentUser()?.username?.substring(0, 1)?.toUpperCase()
+            }}</span>
             <span class="pill-name">{{ authService.currentUser()?.username }}</span>
-          </div>
+          </a>
 
           <!-- Logout button -->
           <button type="button" class="btn btn-outline btn-sm" (click)="authService.logout()">
             Wyloguj
           </button>
         </div>
-
       </div>
     </header>
   }
@@ -51,5 +58,4 @@
   <main class="app-content-wrapper" [class.no-nav]="!authService.isAuthenticated()">
     <router-outlet></router-outlet>
   </main>
-
 </div>

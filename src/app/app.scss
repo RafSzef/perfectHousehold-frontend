@@ -14,7 +14,9 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  transition: background-color var(--transition), border-color var(--transition);
+  transition:
+    background-color var(--transition),
+    border-color var(--transition);
 }
 
 .navbar-container {
@@ -39,6 +41,8 @@
   gap: 8px;
   cursor: pointer;
   user-select: none;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
 
   .logo-emoji {
     font-size: 1.5rem;
@@ -115,6 +119,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
   cursor: pointer;
+  text-decoration: none;
   transition: all var(--transition);
 
   .pill-avatar {
